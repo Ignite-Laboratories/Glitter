@@ -1,0 +1,17 @@
+//kage:unit pixels
+package main
+
+var MirrorAlphaMult float
+var VertDisplacement int
+
+func Fragment(targetCoords vec4, sourceCoords vec2, _ vec4) vec4 {
+	originY := imageSrc0Origin().y
+	relativeSrcY := sourceCoords.y - originY
+	if targetCoords.y < imageDstSize().y/2 {
+		return imageSrc0At(vec2(sourceCoords.x, relativeSrcY*2+originY))
+	}
+	adjustedY := (relativeSrcY - imageSrc0Size().y/2) * 2
+	invertedY := imageSrc0Size().y - adjustedY
+	samplingCoords := vec2(sourceCoords.x, invertedY+originY)
+	return imageSrc0At(samplingCoords) * MirrorAlphaMult
+}
