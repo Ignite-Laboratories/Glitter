@@ -3,14 +3,12 @@ package main
 import (
 	_ "embed"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/ignite-laboratories/glitter/assets"
 	"github.com/tinne26/kage-desk/display"
 )
 
-//go:embed shader.kage
-var shaderProgram []byte
-
 func main() {
-	shader, err := ebiten.NewShader(shaderProgram)
+	shader, err := ebiten.NewShader(assets.Get.Shader("spidercat/spidercat.kage"))
 	if err != nil {
 		panic(err)
 	}

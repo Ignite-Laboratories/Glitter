@@ -1,5 +1,5 @@
 //kage:unit pixels
-package main
+package spidercat
 
 var MirrorAlphaMult float
 var VertDisplacement int
