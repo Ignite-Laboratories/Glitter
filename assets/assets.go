@@ -1,3 +1,4 @@
+// Package assets provides a standardized way of accessing external data.
 package assets
 
 import (
