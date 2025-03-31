@@ -1,2 +1,2 @@
-// Package glitter represents visual ways of representing information in the JanOS ecosystem.
+// Package glitter provides a factory for creating graphical outputs.
 package glitter

@@ -16,27 +16,27 @@ func init() {
 
 type Viewport struct {
 	core.Entity
-	Size      *std.XY[int]
-	Position  *std.XY[int]
+	Size      std.XY[int]
 	Title     *string
 	Window    *glfw.Window
 	Mutex     sync.Mutex
 	Destroyed bool
 
-	lastPosition std.XY[int]
-	lastSize     std.XY[int]
-	lastTitle    string
+	invoke    []func()
+	lastTitle string
 }
 
-func New(title *string, size *std.XY[int], position *std.XY[int]) *Viewport {
-	// Spark off a new open GL context on an impulse thread
-	v := &Viewport{}
-	v.Size = size
-	v.Title = title
-	v.Position = position
-	return v
+func (v *Viewport) SetSize(size std.XY[int]) {
+	v.callOnMainThread(func() {
+		v.Window.SetSize(size.X, size.Y)
+	})
+}
+
+func (v *Viewport) callOnMainThread(action func()) {
+	v.Mutex.Lock()
+	v.invoke = append(v.invoke, action)
+	v.Mutex.Unlock()
 }
 
 func (v *Viewport) Render(ctx core.Context) {
-
 }
