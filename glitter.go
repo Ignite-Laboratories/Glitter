@@ -2,98 +2,103 @@ package glitter
 
 import (
 	"fmt"
-	"github.com/go-gl/gl/v4.6-core/gl"
-	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/Zyko0/go-sdl3/bin/binsdl"
+	"github.com/Zyko0/go-sdl3/sdl"
 	"github.com/ignite-laboratories/core"
 	"github.com/ignite-laboratories/core/std"
 	"github.com/ignite-laboratories/core/temporal"
 	"github.com/ignite-laboratories/core/when"
-	"log"
+	"runtime"
+	"sync"
 )
 
 func init() {
 	fmt.Println("init - [glitter]")
+	go spark()
 }
 
 // Framerate represents the global framerate for all rendering.
-var Framerate = 240.0
+var Framerate = 10.0
+
+var Potential = when.Frequency(&Framerate)
 
 // Dimension represents the underlying dimension that drives all rendering.
-var Dimension = temporal.DedicatedLoop(core.Impulse, when.Frequency(&Framerate), false, tick)
+var Dimension = temporal.ChannelLoop(core.Impulse, func(ctx core.Context) bool {
+	return Potential(ctx)
+}, false)
 
 // Viewports holds the currently active viewports - when they are destroyed, they are removed from this map.
 var Viewports map[uint64]*Viewport = make(map[uint64]*Viewport)
 
-// Spark creates a new basic viewport window that renders nothing.
-func Spark(title *string, size std.XY[int]) *Viewport {
-	// Spark off a new open GL context on an impulse thread
-	v := &Viewport{}
-	v.ID = core.NextID()
-	v.Size = size
-	v.Title = title
-	v.invoke = make([]func(), 0)
-	fmt.Printf("Sparking Viewport - [%d] %v\n", v.ID, *v.Title)
-	Viewports[v.ID] = v
-	return v
+var initialized bool
+var destroy bool
+
+func DestroyedPotential(ctx core.Context) bool {
+	return destroy
 }
 
-var glInitialized bool
+func spark() {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+	defer binsdl.Load().Unload()
+	defer sdl.Quit()
 
-func tick(ctx core.Context) {
-	if len(Viewports) == 0 {
-		glfw.Terminate()
-		glInitialized = false
-		return
+	err := sdl.Init(sdl.INIT_VIDEO)
+	if err != nil {
+		panic(err)
 	}
 
-	if !glInitialized {
-		if err := glfw.Init(); err != nil {
-			log.Fatalln("failed to initialize glfw:", err)
-			return
-		} else {
-			glInitialized = true
+	initialized = true
+
+	for msg := range *Dimension.Cache {
+		if destroy {
+			break
+		}
+		if msg.Action != nil {
+			msg.Action()
+			continue
+		}
+		tick(msg.Context)
+		if destroy {
+			break
 		}
 	}
 
 	for _, v := range Viewports {
-		var err error
-
-		if v.Window == nil {
-			v.Window, err = glfw.CreateWindow(v.Size.X, v.Size.Y, *v.Title, nil, nil)
-			if err != nil {
-				panic(err)
-			}
-		}
-
-		if v.Window.ShouldClose() {
+		if v.window != nil {
 			v.Destroyed = true
-			fmt.Printf("Destroying Viewport - [%d] %v\n", v.ID, *v.Title)
-			delete(Viewports, v.ID)
-			v.Window.Destroy()
-			continue
 		}
-
-		if !std.StringComparator(v.lastTitle, *v.Title) {
-			v.Window.SetTitle(*v.Title)
-			v.lastTitle = *v.Title
-		}
-
-		// Set the context and initialize GL
-		v.Window.MakeContextCurrent()
-		if err = gl.Init(); err != nil {
-			log.Fatalln("failed to initialize gl:", err)
-		}
-
-		v.Mutex.Lock()
-		for _, act := range v.invoke {
-			act()
-		}
-		v.invoke = make([]func(), 0)
-		v.Mutex.Unlock()
-
-		v.Render(ctx)
-
-		glfw.PollEvents()
-		v.Window.SwapBuffers()
 	}
+}
+
+func tick(ctx core.Context) {
+	var event sdl.Event
+	for sdl.PollEvent(&event) {
+		switch event.Type {
+		case sdl.EVENT_WINDOW_CLOSE_REQUESTED:
+			evt := event.WindowEvent()
+			closeCount := 0
+			for _, v := range Viewports {
+				id, _ := v.window.ID()
+				if id == evt.WindowID {
+					v.Destroyed = true
+					v.impulse <- std.ChannelAction{Action: func() {}}
+					closeCount++
+				}
+			}
+			if closeCount == len(Viewports) {
+				destroy = true
+			}
+			return
+		}
+	}
+	var wg sync.WaitGroup
+	for _, v := range Viewports {
+		if v.initialized && !v.Destroyed {
+			wg.Add(1)
+			v.impulse <- std.ChannelAction{Context: ctx, WaitGroup: &wg}
+		}
+	}
+
+	wg.Wait()
 }
