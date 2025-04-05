@@ -19,6 +19,6 @@ func main() {
 }
 
 func GetXCoords[T int]() *T {
-	x := T(mouse.SampleCoordinates().X)
+	x := T(mouse.Sample().X)
 	return &x
 }

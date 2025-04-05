@@ -9,7 +9,7 @@ import (
 )
 
 type Waveform[TValue core.Numeric] struct {
-	*graphics.GLWindow
+	*graphics.RenderableWindow
 	*temporal.Dimension[TValue, any]
 }
 

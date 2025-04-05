@@ -14,7 +14,7 @@ func init() {
 
 func NewWaveformWindow[TValue core.Numeric](target *temporal.Dimension[TValue, any]) *viewport.Waveform[TValue] {
 	v := &viewport.Waveform[TValue]{}
-	v.GLWindow = graphics.NewGLWindow(v)
+	v.RenderableWindow = graphics.SparkRenderableWindow(v)
 	v.Dimension = target
 
 	return v
