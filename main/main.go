@@ -11,15 +11,17 @@ import (
 	"time"
 )
 
-var scale = std.TimeScale[int]{Duration: time.Second * 2, Height: 5000}
-var xCoords = temporal.Observer(core.Impulse, when.Frequency(std.HardRef(240.0).Ref), false, GetXCoords)
-var yCoords = temporal.Observer(core.Impulse, when.Frequency(std.HardRef(240.0).Ref), false, GetYCoords)
+var freq = 240.0 //hz
+var xCoords = temporal.Observer(core.Impulse, when.Frequency(&freq), false, GetXCoords)
+var yCoords = temporal.Observer(core.Impulse, when.Frequency(&freq), false, GetYCoords)
 
 func main() {
-	viewport.NewWaveform(std.XY[int]{X: 640, Y: 480}, &scale, false, xCoords)
-	viewport.NewWaveform(std.XY[int]{X: 640, Y: 480}, &scale, false, yCoords)
+	var windowSize = std.XY[int]{X: 320, Y: 240}
+	viewport.NewWaveform("Mouse X", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 2560}).Ref, false, xCoords)
+	viewport.NewWaveform("Mouse Y", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 1440}).Ref, false, yCoords)
 	core.Impulse.StopWhen(window.StopPotential)
 	core.Impulse.Spark()
+	core.WhileAlive()
 	core.ShutdownNow()
 }
 

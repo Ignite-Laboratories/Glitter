@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-type Waveform[TValue core.Numeric] struct {
+type GeometryWaveform[TValue core.Numeric] struct {
 	*graphics.RenderableWindow
 	*temporal.Dimension[TValue, any]
 
@@ -32,8 +32,8 @@ type Waveform[TValue core.Numeric] struct {
 	mutex sync.Mutex
 }
 
-func NewWaveform[TValue core.Numeric](title string, windowSize std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *Waveform[TValue] {
-	v := &Waveform[TValue]{}
+func NewGeometryWaveform[TValue core.Numeric](title string, windowSize std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *GeometryWaveform[TValue] {
+	v := &GeometryWaveform[TValue]{}
 	v.TimeScale = timeScale
 	v.RenderableWindow = graphics.SparkRenderableWindow(windowSize, v)
 	window.SetTitle(*v.Handle, title)
@@ -53,11 +53,11 @@ func NewWaveform[TValue core.Numeric](title string, windowSize std.XY[int], time
 	return v
 }
 
-func (v *Waveform[TValue]) Initialize() {
+func (v *GeometryWaveform[TValue]) Initialize() {
 	waveform.Init()
 }
 
-func (v *Waveform[TValue]) Render() {
+func (v *GeometryWaveform[TValue]) Render() {
 	v.mutex.Lock()
 	v.count++
 	v.mutex.Unlock()
@@ -96,6 +96,12 @@ func (v *Waveform[TValue]) Render() {
 	}
 	gl.UniformMatrix4fv(locOfProjectionUniform, 1, false, &projection[0])
 
+	locOfThicknessUniform := gl.GetUniformLocation(waveform.GeometryProgram, gl.Str("thickness\x00"))
+	if locOfThicknessUniform == -1 {
+		log.Fatalln("Failed to find uniform thickness")
+	}
+	gl.Uniform1f(locOfThicknessUniform, 5.0)
+
 	// Send them to the GPU using a VBO
 	vbo := graphics.CreateVBO(vertices)
 
@@ -111,10 +117,10 @@ func (v *Waveform[TValue]) Render() {
 	gl.EnableVertexAttribArray(0)
 
 	// Tell GL which shader program to use
-	gl.UseProgram(waveform.SimpleProgram)
+	gl.UseProgram(waveform.GeometryProgram)
 
 	// Draw the line
-	gl.LineWidth(5.0)
+	//gl.LineWidth(5.0)
 	pointCount := len(vertices) / 2
 	gl.DrawArrays(gl.LINE_STRIP, 0, int32(pointCount))
 

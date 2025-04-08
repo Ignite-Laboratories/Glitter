@@ -13,10 +13,14 @@ func Init() {
 	if err := gl.Init(); err != nil {
 		log.Fatalf("Failed to initialize OpenGL: %v", err)
 	}
+	version := gl.GoStr(gl.GetString(gl.VERSION))
+	fmt.Println("OpenGL version:", version)
 
 	VertexShaderID = graphics.CompileShader(VertexShader, gl.VERTEX_SHADER)
 	FragmentShaderID = graphics.CompileShader(FragmentShader, gl.FRAGMENT_SHADER)
-	ProgramID = graphics.LinkPrograms(VertexShaderID, FragmentShaderID)
+	GeometryShaderID = graphics.CompileShader(GeometryShader, gl.FRAGMENT_SHADER)
+	SimpleProgram = graphics.LinkPrograms(VertexShaderID, FragmentShaderID)
+	GeometryProgram = graphics.LinkPrograms(VertexShaderID, FragmentShaderID, GeometryShaderID)
 }
 
 //go:embed waveform.vert
@@ -27,4 +31,9 @@ var VertexShaderID uint32
 var FragmentShader string
 var FragmentShaderID uint32
 
-var ProgramID uint32
+//go:embed waveform.geom
+var GeometryShader string
+var GeometryShaderID uint32
+
+var SimpleProgram uint32
+var GeometryProgram uint32
