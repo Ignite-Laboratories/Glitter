@@ -6,8 +6,8 @@ import (
 	"github.com/ignite-laboratories/core/temporal"
 	"github.com/ignite-laboratories/core/when"
 	"github.com/ignite-laboratories/glitter/viewport"
+	"github.com/ignite-laboratories/host/hydra"
 	"github.com/ignite-laboratories/host/mouse"
-	"github.com/ignite-laboratories/host/window"
 	"time"
 )
 
@@ -20,7 +20,7 @@ func main() {
 	viewport.NewWaveform("Mouse X", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 2560}).Ref, false, xCoords)
 	viewport.NewWaveform("Mouse Y", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 1440}).Ref, false, yCoords)
 
-	core.Impulse.StopWhen(window.StopPotential)
+	core.Impulse.StopWhen(hydra.StopPotential)
 	core.Impulse.Spark()
 }
 

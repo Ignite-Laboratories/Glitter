@@ -10,8 +10,7 @@ import (
 	"github.com/ignite-laboratories/glitter/shaders/waveform"
 	"github.com/ignite-laboratories/host/graphics"
 	"github.com/ignite-laboratories/host/graphics/math"
-	"github.com/ignite-laboratories/host/window"
-	"github.com/ignite-laboratories/host/x11"
+	"github.com/ignite-laboratories/host/hydra"
 	"log"
 	"sync"
 	"time"
@@ -36,13 +35,13 @@ func NewGeometryWaveform[TValue core.Numeric](title string, windowSize std.XY[in
 	v := &GeometryWaveform[TValue]{}
 	v.TimeScale = timeScale
 	v.RenderableWindow = graphics.SparkRenderableWindow(windowSize, v)
-	window.SetTitle(*v.Handle, title)
+	hydra.SetTitle(*v.Handle, title)
 	v.title = title
 	go func() {
 		for core.Alive && !v.Handle.Destroyed {
 			v.mutex.Lock()
-			window.SetTitle(*v.Handle, fmt.Sprintf("%v - %d", title, v.count))
-			x11.Flush(v.Handle.Display)
+			hydra.SetTitle(*v.Handle, fmt.Sprintf("%v - %d", title, v.count))
+			hydra.Flush(v.Handle.Display)
 			v.count = 0
 			v.mutex.Unlock()
 			time.Sleep(time.Second)
