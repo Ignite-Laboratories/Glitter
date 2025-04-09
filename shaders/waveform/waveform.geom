@@ -1,4 +1,4 @@
-#version 330 core
+#version 320 es
 
 layout(lines) in; // Input primitive type (expects, for instance, lines)
 layout(triangle_strip, max_vertices = 4) out; // Output type and max vertices emitted
