@@ -20,7 +20,7 @@ func Init() {
 	FragmentShaderID = graphics.CompileShader(FragmentShader, gl.FRAGMENT_SHADER)
 	//GeometryShaderID = graphics.CompileShader(GeometryShader, gl.FRAGMENT_SHADER)
 	SimpleProgram = graphics.LinkPrograms(VertexShaderID, FragmentShaderID)
-	//GeometryProgram = graphics.LinkPrograms(VertexShaderID, FragmentShaderID, GeometryShaderID)
+	//GeometryProgram = graphics.LinkPrograms(VertexShaderID, GeometryShaderID, FragmentShaderID)
 }
 
 //go:embed waveform.vert
