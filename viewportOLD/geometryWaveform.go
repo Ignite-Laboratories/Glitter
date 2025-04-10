@@ -7,10 +7,11 @@ import (
 	"github.com/ignite-laboratories/core"
 	"github.com/ignite-laboratories/core/std"
 	"github.com/ignite-laboratories/core/temporal"
+	"github.com/ignite-laboratories/glitter/math"
 	"github.com/ignite-laboratories/glitter/shaders/waveform"
 	"github.com/ignite-laboratories/host/graphics"
-	"github.com/ignite-laboratories/host/graphics/math"
 	"github.com/ignite-laboratories/host/hydraold"
+	"github.com/ignite-laboratories/host/x11"
 	"log"
 	"sync"
 	"time"
@@ -41,7 +42,7 @@ func NewGeometryWaveform[TValue core.Numeric](title string, windowSize std.XY[in
 		for core.Alive && !v.Handle.Destroyed {
 			v.mutex.Lock()
 			hydraold.SetTitle(*v.Handle, fmt.Sprintf("%v - %d", title, v.count))
-			hydraold.Flush(v.Handle.Display)
+			x11.Flush(v.Handle.Display)
 			v.count = 0
 			v.mutex.Unlock()
 			time.Sleep(time.Second)
