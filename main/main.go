@@ -17,14 +17,14 @@ var yCoords = temporal.Observer(core.Impulse, when.Frequency(&freq), false, GetY
 
 func main() {
 	var windowSize = std.XY[int]{X: 320, Y: 240}
-	viewport.NewWaveform("Mouse X", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 2560}).Ref, false, xCoords)
-	viewport.NewWaveform("Mouse Y", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 1440}).Ref, false, yCoords)
-	viewport.NewWaveform("Mouse X", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 2560}).Ref, false, xCoords)
-	viewport.NewWaveform("Mouse Y", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 1440}).Ref, false, yCoords)
-	viewport.NewWaveform("Mouse X", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 2560}).Ref, false, xCoords)
-	viewport.NewWaveform("Mouse Y", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 1440}).Ref, false, yCoords)
+	viewport.NewWaveform("1 Mouse X", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 2560}).Ref, false, xCoords)
+	viewport.NewWaveform("2 Mouse Y", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 1440}).Ref, false, yCoords)
+	viewport.NewWaveform("3 Mouse X", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 2560}).Ref, false, xCoords)
+	viewport.NewWaveform("4 Mouse Y", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 1440}).Ref, false, yCoords)
+	viewport.NewWaveform("5 Mouse X", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 2560}).Ref, false, xCoords)
+	viewport.NewWaveform("6 Mouse Y", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 1440}).Ref, false, yCoords)
 
-	core.Impulse.StopWhen(hydra.StopPotential)
+	core.Impulse.StopWhen(hydra.When.HasNoWindows)
 	core.Impulse.Spark()
 }
 

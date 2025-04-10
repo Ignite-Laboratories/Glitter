@@ -1,4 +1,4 @@
-package viewport
+package viewportOLD
 
 import (
 	_ "embed"
@@ -10,13 +10,13 @@ import (
 	"github.com/ignite-laboratories/glitter/shaders/waveform"
 	"github.com/ignite-laboratories/host/graphics"
 	"github.com/ignite-laboratories/host/graphics/math"
-	"github.com/ignite-laboratories/host/hydra"
+	"github.com/ignite-laboratories/host/hydraold"
 	"log"
 	"sync"
 	"time"
 )
 
-type GeometryWaveform[TValue core.Numeric] struct {
+type Waveform[TValue core.Numeric] struct {
 	*graphics.RenderableWindow
 	*temporal.Dimension[TValue, any]
 
@@ -31,17 +31,17 @@ type GeometryWaveform[TValue core.Numeric] struct {
 	mutex sync.Mutex
 }
 
-func NewGeometryWaveform[TValue core.Numeric](title string, windowSize std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *GeometryWaveform[TValue] {
-	v := &GeometryWaveform[TValue]{}
+func NewWaveform[TValue core.Numeric](title string, windowSize std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *Waveform[TValue] {
+	v := &Waveform[TValue]{}
 	v.TimeScale = timeScale
 	v.RenderableWindow = graphics.SparkRenderableWindow(windowSize, v)
-	hydra.SetTitle(*v.Handle, title)
+	hydraold.SetTitle(*v.Handle, title)
 	v.title = title
 	go func() {
 		for core.Alive && !v.Handle.Destroyed {
 			v.mutex.Lock()
-			hydra.SetTitle(*v.Handle, fmt.Sprintf("%v - %d", title, v.count))
-			hydra.Flush(v.Handle.Display)
+			hydraold.SetTitle(*v.Handle, fmt.Sprintf("%v - %d", title, v.count))
+			hydraold.Flush(v.Handle.Display)
 			v.count = 0
 			v.mutex.Unlock()
 			time.Sleep(time.Second)
@@ -52,11 +52,11 @@ func NewGeometryWaveform[TValue core.Numeric](title string, windowSize std.XY[in
 	return v
 }
 
-func (v *GeometryWaveform[TValue]) Initialize() {
+func (v *Waveform[TValue]) Initialize() {
 	waveform.Init()
 }
 
-func (v *GeometryWaveform[TValue]) Render() {
+func (v *Waveform[TValue]) Render() {
 	v.mutex.Lock()
 	v.count++
 	v.mutex.Unlock()
@@ -95,12 +95,6 @@ func (v *GeometryWaveform[TValue]) Render() {
 	}
 	gl.UniformMatrix4fv(locOfProjectionUniform, 1, false, &projection[0])
 
-	locOfThicknessUniform := gl.GetUniformLocation(waveform.GeometryProgram, gl.Str("thickness\x00"))
-	if locOfThicknessUniform == -1 {
-		log.Fatalln("Failed to find uniform thickness")
-	}
-	gl.Uniform1f(locOfThicknessUniform, 5.0)
-
 	// Send them to the GPU using a VBO
 	vbo := graphics.CreateVBO(vertices)
 
@@ -116,10 +110,10 @@ func (v *GeometryWaveform[TValue]) Render() {
 	gl.EnableVertexAttribArray(0)
 
 	// Tell GL which shader program to use
-	gl.UseProgram(waveform.GeometryProgram)
+	gl.UseProgram(waveform.SimpleProgram)
 
 	// Draw the line
-	//gl.LineWidth(5.0)
+	gl.LineWidth(5.0)
 	pointCount := len(vertices) / 2
 	gl.DrawArrays(gl.LINE_STRIP, 0, int32(pointCount))
 
