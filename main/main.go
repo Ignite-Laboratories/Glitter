@@ -11,18 +11,19 @@ import (
 	"time"
 )
 
-var freq = 240.0 //hz
+var framerate = 60.0 //hz
+var freq = 240.0     //hz
 var xCoords = temporal.Observer(core.Impulse, when.Frequency(&freq), false, GetXCoords)
 var yCoords = temporal.Observer(core.Impulse, when.Frequency(&freq), false, GetYCoords)
 
 func main() {
 	var windowSize = std.XY[int]{X: 320, Y: 240}
-	viewport.NewWaveform("1 Mouse X", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 2560}).Ref, false, xCoords)
-	viewport.NewWaveform("2 Mouse Y", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 1440}).Ref, false, yCoords)
-	viewport.NewWaveform("3 Mouse X", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 2560}).Ref, false, xCoords)
-	viewport.NewWaveform("4 Mouse Y", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 1440}).Ref, false, yCoords)
-	viewport.NewWaveform("5 Mouse X", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 2560}).Ref, false, xCoords)
-	viewport.NewWaveform("6 Mouse Y", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 1440}).Ref, false, yCoords)
+	viewport.NewWaveform(&framerate, "1 Mouse X", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 2560}).Ref, false, xCoords)
+	viewport.NewWaveform(&framerate, "2 Mouse Y", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 1440}).Ref, false, yCoords)
+	viewport.NewWaveform(&framerate, "3 Mouse X", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 2560}).Ref, false, xCoords)
+	viewport.NewWaveform(&framerate, "4 Mouse Y", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 1440}).Ref, false, yCoords)
+	viewport.NewWaveform(&framerate, "5 Mouse X", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 2560}).Ref, false, xCoords)
+	viewport.NewWaveform(&framerate, "6 Mouse Y", windowSize, std.HardRef(std.TimeScale[int]{Duration: time.Second * 2, Height: 1440}).Ref, false, yCoords)
 
 	core.Impulse.StopWhen(hydra.When.HasNoWindows)
 	core.Impulse.Spark()
