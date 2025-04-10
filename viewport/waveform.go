@@ -6,19 +6,18 @@ import (
 	"github.com/ignite-laboratories/core"
 	"github.com/ignite-laboratories/core/std"
 	"github.com/ignite-laboratories/core/temporal"
-	"github.com/ignite-laboratories/core/when"
 	"github.com/ignite-laboratories/host/hydra"
 	"time"
 )
 
 type Waveform[TValue any] struct {
-	*hydra.WindowCtrl
+	*hydra.WindowHead
 	count int
 }
 
-func NewWaveform[TValue core.Numeric](framerate *float64, title string, size std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *Waveform[TValue] {
+func NewWaveform[TValue any, TField core.Numeric](framePotential core.Potential, title string, size std.XY[int], timeScale *std.TimeScale[TField], isSigned bool, target *temporal.Dimension[TValue, any], fieldSelector func(TValue) TField) *Waveform[TValue] {
 	wave := &Waveform[TValue]{}
-	wave.WindowCtrl = hydra.CreateWindow(core.Impulse, title, size, std.XY[int]{X: 200, Y: 400}, wave.Render, when.Frequency(framerate), false)
+	wave.WindowHead = hydra.CreateWindow(core.Impulse, title, size, std.XY[int]{X: 200, Y: 400}, wave.Render, framePotential, false)
 
 	go func() {
 		for core.Alive && wave.Alive {
