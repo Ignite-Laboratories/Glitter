@@ -39,7 +39,6 @@ func NewWaveform[TValue core.Numeric](fullscreen bool, framePotential core.Poten
 }
 
 func (w *Waveform[TValue]) Render(ctx core.Context) {
-
 	now := time.Now()
 	oldest := now.Add(-w.TimeScale.Duration)
 	w.Mutex.Lock()

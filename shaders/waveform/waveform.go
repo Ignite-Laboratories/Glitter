@@ -9,9 +9,9 @@ import (
 )
 
 func Init() {
-	fmt.Println("[glitter] - initializing waveform shaders")
+	fmt.Println("[glitter] initializing waveform shaders")
 	if err := gl.Init(); err != nil {
-		log.Fatalf("Failed to initialize OpenGL: %v", err)
+		log.Fatalf("failed to initialize OpenGL: %v", err)
 	}
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	fmt.Println("OpenGL version:", version)
