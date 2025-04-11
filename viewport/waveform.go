@@ -59,7 +59,7 @@ func (w *Waveform[TValue]) Render(ctx core.Context) {
 	vertices := make([]float32, len(data)*2) // 2 floats per point (X, Y)
 	var i int
 	for _, d := range data {
-		vertices[i] = float32(d.Moment.Sub(oldest))
+		vertices[i] = float32(d.Moment.Sub(oldest).Seconds()) // Convert to seconds
 		i++
 		vertices[i] = float32(d.Point)
 		i++
@@ -67,9 +67,9 @@ func (w *Waveform[TValue]) Render(ctx core.Context) {
 
 	var projection []float32
 	if w.IsSigned {
-		projection = math.Ortho(0.0, float64(w.TimeScale.Duration), float64(-(w.TimeScale.Height / 2)), float64(w.TimeScale.Height/2), -1.0, 1.0) // Example
+		projection = math.Ortho(0.0, w.TimeScale.Duration.Seconds(), float64(-(w.TimeScale.Height / 2)), float64(w.TimeScale.Height/2), -1.0, 1.0) // Example
 	} else {
-		projection = math.Ortho(0.0, float64(w.TimeScale.Duration), 0, float64(w.TimeScale.Height), -1.0, 1.0) // Example
+		projection = math.Ortho(0.0, w.TimeScale.Duration.Seconds(), 0, float64(w.TimeScale.Height), -1.0, 1.0) // Example
 	}
 	gl.UniformMatrix4fv(locOfProjectionUniform, 1, false, &projection[0])
 
