@@ -1,8 +1,8 @@
 package glitter
 
 import (
-	"fmt"
 	"github.com/go-gl/gl/v3.3-core/gl"
+	"github.com/ignite-laboratories/core"
 	"strings"
 )
 
@@ -34,7 +34,7 @@ func CompileShader(src string, shaderType uint32) uint32 {
 		log := strings.Repeat("\x00", int(logLength+1))
 		gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(log))
 
-		panic(fmt.Errorf("failed to compile shader: %v", log))
+		core.Fatalf(ModuleName, "failed to compile shader: %v", log)
 	}
 	return shader
 }
@@ -56,7 +56,7 @@ func LinkPrograms(shaderIDs ...uint32) uint32 {
 		log := strings.Repeat("\x00", int(logLength+1))
 		gl.GetProgramInfoLog(program, logLength, nil, gl.Str(log))
 
-		panic(fmt.Errorf("failed to link program: %v", log))
+		core.Fatalf(ModuleName, "failed to link program: %v", log)
 	}
 	return program
 }
