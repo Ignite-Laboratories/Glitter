@@ -12,8 +12,8 @@ import (
 )
 
 var framerate = 60.0 //hz
-var xTimeScale = std.TimeScale[int]{Duration: time.Second * 2, Height: 2560}
-var yTimeScale = std.TimeScale[int]{Duration: time.Second * 2, Height: 1440}
+var xTimeScale = std.TimeScale[int]{Duration: time.Second * 4, Height: 2560}
+var yTimeScale = std.TimeScale[int]{Duration: time.Second * 4, Height: 1440}
 
 var xCoords = temporal.Calculation(core.Impulse, when.Frequency(&mouse.SampleRate), false, SampleX)
 var yCoords = temporal.Calculation(core.Impulse, when.Frequency(&mouse.SampleRate), false, SampleY)
