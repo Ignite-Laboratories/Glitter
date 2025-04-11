@@ -4,7 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"github.com/go-gl/gl/v3.3-core/gl"
-	"github.com/ignite-laboratories/host/graphics"
+	"github.com/ignite-laboratories/glitter"
 	"log"
 )
 
@@ -16,11 +16,11 @@ func Init() {
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	fmt.Println("OpenGL version:", version)
 
-	VertexShaderID = graphics.CompileShader(VertexShader, gl.VERTEX_SHADER)
-	FragmentShaderID = graphics.CompileShader(FragmentShader, gl.FRAGMENT_SHADER)
-	//GeometryShaderID = graphics.CompileShader(GeometryShader, gl.FRAGMENT_SHADER)
-	SimpleProgram = graphics.LinkPrograms(VertexShaderID, FragmentShaderID)
-	//GeometryProgram = graphics.LinkPrograms(VertexShaderID, GeometryShaderID, FragmentShaderID)
+	VertexShaderID = glitter.CompileShader(VertexShader, gl.VERTEX_SHADER)
+	FragmentShaderID = glitter.CompileShader(FragmentShader, gl.FRAGMENT_SHADER)
+	//GeometryShaderID = glitter.CompileShader(GeometryShader, gl.FRAGMENT_SHADER)
+	SimpleProgram = glitter.LinkPrograms(VertexShaderID, FragmentShaderID)
+	//GeometryProgram = glitter.LinkPrograms(VertexShaderID, GeometryShaderID, FragmentShaderID)
 }
 
 //go:embed waveform.vert
