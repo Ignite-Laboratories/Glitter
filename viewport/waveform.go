@@ -91,7 +91,7 @@ func (w *Waveform[TValue]) Render(ctx core.Context) {
 	gl.UseProgram(waveform.SimpleProgram)
 
 	// Draw the line
-	gl.LineWidth(5.0)
+	//gl.LineWidth(5.0)
 	pointCount := len(vertices) / 2
 	gl.DrawArrays(gl.LINE_STRIP, 0, int32(pointCount))
 
