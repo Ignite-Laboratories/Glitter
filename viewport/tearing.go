@@ -39,6 +39,7 @@ func NewTearing(fullscreen bool, framePotential core.Potential, title string, si
 }
 
 func (view *Tearing) Initialize() {
+	glitter.InitializeGL(view.Head)
 	view.vertexShader = glitter.CompileShader(vertexShaderSource, gl.VERTEX_SHADER)
 	view.fragmentShader = glitter.CompileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
 	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
@@ -68,7 +69,7 @@ func (view *Tearing) Initialize() {
 	gl.BindVertexArray(0)
 }
 
-func (view *Tearing) Render(ctx core.Context) {
+func (view *Tearing) Impulse(ctx core.Context) {
 	gl.ClearColor(0.25, 0.25, 0.25, 1.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 

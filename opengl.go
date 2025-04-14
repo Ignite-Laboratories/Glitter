@@ -3,8 +3,51 @@ package glitter
 import (
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/ignite-laboratories/core"
+	"github.com/ignite-laboratories/host/hydra"
+	"github.com/veandco/go-sdl2/sdl"
+	"runtime"
 	"strings"
 )
+
+func InitializeGL(head *hydra.Head) {
+	runtime.LockOSThread()
+
+	sdl.GLSetAttribute(sdl.GL_DOUBLEBUFFER, 1)
+
+	// Create OpenGL context
+	glContext, err := head.Window.GLCreateContext()
+	if err != nil {
+		core.Fatalf(ModuleName, "failed to create OpenGL context: %v\n", err)
+	}
+	defer sdl.GLDeleteContext(glContext)
+
+	if err := sdl.GLSetSwapInterval(-1); err != nil {
+		core.Printf(ModuleName, "adaptive v-sync not available, falling back to v-sync\n")
+		if err := sdl.GLSetSwapInterval(1); err != nil {
+			core.Printf(ModuleName, "standard V-Sync also failed: %v\n", err)
+		}
+	}
+
+	// Initialize OpenGL
+	if err := gl.Init(); err != nil {
+		core.Fatalf(ModuleName, "failed to initialize OpenGL: %v", err)
+	}
+
+	// Get OpenGL version
+	glVersion := gl.GoStr(gl.GetString(gl.VERSION))
+	core.Verbosef(ModuleName, "[%d.%d] initialized with %s\n", head.WindowID, head.ID, glVersion)
+
+	// Get and print extensions
+	//numExtensions := int32(0)
+	//gl.GetIntegerv(gl.NUM_EXTENSIONS, &numExtensions)
+	//
+	//for i := int32(0); i < numExtensions; i++ {
+	//	extension := gl.GoStr(gl.GetStringi(gl.EXTENSIONS, uint32(i)))
+	//	if strings.Contains(extension, "geometry") {
+	//		fmt.Println("found geometry-related extension:", extension)
+	//	}
+	//}
+}
 
 func CreateVBO(vertices []float32) uint32 {
 	var vbo uint32
@@ -34,7 +77,7 @@ func CompileShader(src string, shaderType uint32) uint32 {
 		log := strings.Repeat("\x00", int(logLength+1))
 		gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(log))
 
-		core.Fatalf(ModuleName, "failed to compile shader: %v", log)
+		core.Fatalf(ModuleName, "failed to compile shader: %v\n", log)
 	}
 	return shader
 }

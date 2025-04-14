@@ -38,7 +38,7 @@ func NewWaveform[TValue core.Numeric](fullscreen bool, framePotential core.Poten
 	return view
 }
 
-func (view *Waveform[TValue]) Render(ctx core.Context) {
+func (view *Waveform[TValue]) Impulse(ctx core.Context) {
 	now := time.Now()
 	oldest := now.Add(-view.TimeScale.Duration)
 	view.Mutex.Lock()
@@ -103,5 +103,6 @@ func (view *Waveform[TValue]) Cleanup() {
 }
 
 func (view *Waveform[TValue]) Initialize() {
+	glitter.InitializeGL(view.Head)
 	shaders.Init()
 }

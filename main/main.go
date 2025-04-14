@@ -19,6 +19,7 @@ var xCoords = temporal.Calculation(core.Impulse, when.Frequency(&mouse.SampleRat
 var yCoords = temporal.Calculation(core.Impulse, when.Frequency(&mouse.SampleRate), false, SampleY)
 
 func main() {
+	core.Verbose = true
 	var windowSize = &std.XY[int]{X: 320, Y: 240}
 
 	viewport.NewWaveform(false, when.Frequency(&framerate), "Mouse X", windowSize, nil, &xTimeScale, false, xCoords)
