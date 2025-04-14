@@ -30,7 +30,7 @@ func InitializeGL(head *hydra.Head) {
 
 	// Initialize OpenGL
 	if err := gl.Init(); err != nil {
-		core.Fatalf(ModuleName, "failed to initialize OpenGL: %v", err)
+		core.Fatalf(ModuleName, "failed to initialize OpenGL: %v\n", err)
 	}
 
 	// Get OpenGL version
@@ -77,7 +77,7 @@ func CompileShader(src string, shaderType uint32) uint32 {
 		log := strings.Repeat("\x00", int(logLength+1))
 		gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(log))
 
-		core.Fatalf(ModuleName, "failed to compile shader: %v\n", log)
+		//core.Fatalf(ModuleName, "failed to compile shader: %v\n", log)
 	}
 	return shader
 }
@@ -99,7 +99,7 @@ func LinkPrograms(shaderIDs ...uint32) uint32 {
 		log := strings.Repeat("\x00", int(logLength+1))
 		gl.GetProgramInfoLog(program, logLength, nil, gl.Str(log))
 
-		core.Fatalf(ModuleName, "failed to link program: %v", log)
+		core.Fatalf(ModuleName, "failed to link program: %v\n", log)
 	}
 	return program
 }

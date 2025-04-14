@@ -8,6 +8,10 @@ import (
 	"github.com/ignite-laboratories/host/hydra"
 )
 
+func init() {
+	core.Verbose = true
+}
+
 var framerate = 60.0 //hz
 
 func main() {
