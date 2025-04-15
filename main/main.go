@@ -6,8 +6,8 @@ import (
 	"github.com/ignite-laboratories/core/temporal"
 	"github.com/ignite-laboratories/core/when"
 	"github.com/ignite-laboratories/glitter/viewport"
-	"github.com/ignite-laboratories/host/hydra"
 	"github.com/ignite-laboratories/host/mouse"
+	"github.com/ignite-laboratories/host/sdl2"
 	"time"
 )
 
@@ -25,7 +25,7 @@ func main() {
 	viewport.NewWaveform(false, when.Frequency(&framerate), "Mouse X", windowSize, nil, &xTimeScale, false, xCoords)
 	viewport.NewWaveform(false, when.Frequency(&framerate), "Mouse Y", windowSize, nil, &yTimeScale, false, yCoords)
 
-	core.Impulse.StopWhen(hydra.HasNoWindows)
+	core.Impulse.StopWhen(sdl2.HasNoWindows)
 	core.Impulse.Spark()
 }
 

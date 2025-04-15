@@ -2,11 +2,13 @@ package viewport
 
 import (
 	_ "embed"
+	"fmt"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/ignite-laboratories/core"
 	"github.com/ignite-laboratories/core/std"
-	"github.com/ignite-laboratories/glitter"
-	"github.com/ignite-laboratories/host/hydra"
+	"github.com/ignite-laboratories/host/opengl"
+	"github.com/ignite-laboratories/host/sdl2"
+	"sync"
 	"time"
 )
 
@@ -17,7 +19,7 @@ var fragmentShaderSource string
 var vertexShaderSource string
 
 type Tearing struct {
-	*hydra.Head
+	*sdl2.Window
 
 	fragmentShader uint32
 	vertexShader   uint32
@@ -25,24 +27,36 @@ type Tearing struct {
 	vao            uint32
 	vbo            uint32
 	vertices       []float32
+
+	mutex      sync.Mutex
+	framecount int
 }
 
 func NewTearing(fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int]) *Tearing {
 	view := &Tearing{}
 	if fullscreen {
-		view.Head = hydra.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
+		view.Window = sdl2.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
 	} else {
-		view.Head = hydra.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
+		view.Window = sdl2.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
 	}
+
+	go func() {
+		for core.Alive {
+			time.Sleep(time.Second)
+			view.mutex.Lock()
+			fmt.Println("framecount: ", view.framecount)
+			view.framecount = 0
+			view.mutex.Unlock()
+		}
+	}()
 
 	return view
 }
 
 func (view *Tearing) Initialize() {
-	glitter.InitializeGL(view.Head)
-	view.vertexShader = glitter.CompileShader(vertexShaderSource, gl.VERTEX_SHADER)
-	view.fragmentShader = glitter.CompileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
-	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
+	view.vertexShader = opengl.CompileShader(vertexShaderSource, gl.VERTEX_SHADER)
+	view.fragmentShader = opengl.CompileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
+	view.program = opengl.LinkPrograms(view.vertexShader, view.fragmentShader)
 
 	gl.UseProgram(view.program)
 
@@ -70,10 +84,14 @@ func (view *Tearing) Initialize() {
 }
 
 func (view *Tearing) Impulse(ctx core.Context) {
+	view.mutex.Lock()
+	view.framecount++
+	view.mutex.Unlock()
+
 	gl.ClearColor(0.25, 0.25, 0.25, 1.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-	screenWidth, screenHeight := view.Window.GetSize()
+	screenWidth, screenHeight := view.Window.Handle.GetSize()
 	resolutionUniform := gl.GetUniformLocation(view.program, gl.Str("resolution\x00"))
 	gl.Uniform2f(resolutionUniform, float32(screenWidth), float32(screenHeight))
 
@@ -85,6 +103,8 @@ func (view *Tearing) Impulse(ctx core.Context) {
 	gl.BindVertexArray(view.vao)
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
 	gl.BindVertexArray(0)
+
+	view.Window.Handle.GLSwap()
 }
 
 func (view *Tearing) Cleanup() {

@@ -5,16 +5,16 @@ import (
 	"github.com/ignite-laboratories/core"
 	"github.com/ignite-laboratories/core/std"
 	"github.com/ignite-laboratories/core/temporal"
-	"github.com/ignite-laboratories/glitter"
 	"github.com/ignite-laboratories/glitter/math"
 	"github.com/ignite-laboratories/glitter/viewport/shaders"
-	"github.com/ignite-laboratories/host/hydra"
+	"github.com/ignite-laboratories/host/opengl"
+	"github.com/ignite-laboratories/host/sdl2"
 	"log"
 	"time"
 )
 
 type Waveform[TValue core.Numeric] struct {
-	*hydra.Head
+	*sdl2.Window
 	*temporal.Dimension[TValue, any]
 
 	// TimeScale represents the dimensional bounds to render the waveform within.
@@ -27,9 +27,9 @@ type Waveform[TValue core.Numeric] struct {
 func NewWaveform[TValue core.Numeric](fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *Waveform[TValue] {
 	view := &Waveform[TValue]{}
 	if fullscreen {
-		view.Head = hydra.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
+		view.Window = sdl2.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
 	} else {
-		view.Head = hydra.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
+		view.Window = sdl2.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
 	}
 	view.TimeScale = timeScale
 	view.Dimension = target
@@ -74,7 +74,7 @@ func (view *Waveform[TValue]) Impulse(ctx core.Context) {
 	gl.UniformMatrix4fv(locOfProjectionUniform, 1, false, &projection[0])
 
 	// Send them to the GPU using a VBO
-	vbo := glitter.CreateVBO(vertices)
+	vbo := opengl.CreateVBO(vertices)
 
 	// Set up the VAO
 	var vao uint32
@@ -96,6 +96,8 @@ func (view *Waveform[TValue]) Impulse(ctx core.Context) {
 	gl.BindVertexArray(0)
 	gl.DeleteBuffers(1, &vbo)
 	gl.DeleteVertexArrays(1, &vao)
+
+	view.Window.Handle.GLSwap()
 }
 
 func (view *Waveform[TValue]) Cleanup() {
@@ -103,6 +105,6 @@ func (view *Waveform[TValue]) Cleanup() {
 }
 
 func (view *Waveform[TValue]) Initialize() {
-	glitter.InitializeGL(view.Head)
+	//glitter.InitializeGL(view.Head)
 	shaders.Init()
 }
