@@ -5,9 +5,9 @@ import (
 	"github.com/ignite-laboratories/core"
 	"github.com/ignite-laboratories/core/std"
 	"github.com/ignite-laboratories/core/temporal"
+	"github.com/ignite-laboratories/glitter"
 	"github.com/ignite-laboratories/glitter/math"
 	"github.com/ignite-laboratories/glitter/viewport/shaders"
-	"github.com/ignite-laboratories/host/opengl"
 	"github.com/ignite-laboratories/host/sdl2"
 	"log"
 	"time"
@@ -74,7 +74,7 @@ func (view *Waveform[TValue]) Impulse(ctx core.Context) {
 	gl.UniformMatrix4fv(locOfProjectionUniform, 1, false, &projection[0])
 
 	// Send them to the GPU using a VBO
-	vbo := opengl.CreateVBO(vertices)
+	vbo := glitter.CreateVBO(vertices)
 
 	// Set up the VAO
 	var vao uint32

@@ -24,6 +24,16 @@ func main() {
 
 	viewport.NewWaveform(false, when.Frequency(&framerate), "Mouse X", windowSize, nil, &xTimeScale, false, xCoords)
 	viewport.NewWaveform(false, when.Frequency(&framerate), "Mouse Y", windowSize, nil, &yTimeScale, false, yCoords)
+	viewport.NewWaveform(false, when.Frequency(&framerate), "Mouse X", windowSize, nil, &xTimeScale, false, xCoords)
+	viewport.NewWaveform(false, when.Frequency(&framerate), "Mouse Y", windowSize, nil, &yTimeScale, false, yCoords)
+	viewport.NewWaveform(false, when.Frequency(&framerate), "Mouse X", windowSize, nil, &xTimeScale, false, xCoords)
+	viewport.NewWaveform(false, when.Frequency(&framerate), "Mouse Y", windowSize, nil, &yTimeScale, false, yCoords)
+	viewport.NewWaveform(false, when.Frequency(&framerate), "Mouse X", windowSize, nil, &xTimeScale, false, xCoords)
+	viewport.NewWaveform(false, when.Frequency(&framerate), "Mouse Y", windowSize, nil, &yTimeScale, false, yCoords)
+	viewport.NewWaveform(false, when.Frequency(&framerate), "Mouse X", windowSize, nil, &xTimeScale, false, xCoords)
+	viewport.NewWaveform(false, when.Frequency(&framerate), "Mouse Y", windowSize, nil, &yTimeScale, false, yCoords)
+	viewport.NewWaveform(false, when.Frequency(&framerate), "Mouse X", windowSize, nil, &xTimeScale, false, xCoords)
+	viewport.NewWaveform(false, when.Frequency(&framerate), "Mouse Y", windowSize, nil, &yTimeScale, false, yCoords)
 
 	core.Impulse.StopWhen(sdl2.HasNoWindows)
 	core.Impulse.Spark()

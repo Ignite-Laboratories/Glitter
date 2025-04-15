@@ -6,6 +6,7 @@ import (
 	"github.com/ignite-laboratories/core/std"
 	"github.com/ignite-laboratories/core/when"
 	"github.com/ignite-laboratories/glitter/viewport"
+	"github.com/ignite-laboratories/host/sdl2"
 )
 
 func init() {
@@ -19,8 +20,16 @@ func main() {
 
 	core.Verbosef("main thread", "%d\n", debugging.GetGoroutineID())
 
-	viewport.NewTearing(true, when.Frequency(&framerate), "Screen tearing test", windowSize, nil)
+	viewport.NewTearing(false, when.Frequency(&framerate), "Screen tearing test", windowSize, nil)
+	viewport.NewTearing(false, when.Frequency(&framerate), "Screen tearing test", windowSize, nil)
+	viewport.NewTearing(false, when.Frequency(&framerate), "Screen tearing test", windowSize, nil)
+	viewport.NewTearing(false, when.Frequency(&framerate), "Screen tearing test", windowSize, nil)
+	viewport.NewTearing(false, when.Frequency(&framerate), "Screen tearing test", windowSize, nil)
+	viewport.NewTearing(false, when.Frequency(&framerate), "Screen tearing test", windowSize, nil)
+	viewport.NewTearing(false, when.Frequency(&framerate), "Screen tearing test", windowSize, nil)
+	viewport.NewTearing(false, when.Frequency(&framerate), "Screen tearing test", windowSize, nil)
+	viewport.NewTearing(false, when.Frequency(&framerate), "Screen tearing test", windowSize, nil)
 
-	//core.Impulse.StopWhen(hydra.HasNoWindows)
+	core.Impulse.StopWhen(sdl2.HasNoWindows)
 	core.Impulse.Spark()
 }

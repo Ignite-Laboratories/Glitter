@@ -2,13 +2,11 @@ package viewport
 
 import (
 	_ "embed"
-	"fmt"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/ignite-laboratories/core"
 	"github.com/ignite-laboratories/core/std"
-	"github.com/ignite-laboratories/host/opengl"
+	"github.com/ignite-laboratories/glitter"
 	"github.com/ignite-laboratories/host/sdl2"
-	"sync"
 	"time"
 )
 
@@ -27,9 +25,6 @@ type Tearing struct {
 	vao            uint32
 	vbo            uint32
 	vertices       []float32
-
-	mutex      sync.Mutex
-	framecount int
 }
 
 func NewTearing(fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int]) *Tearing {
@@ -40,23 +35,13 @@ func NewTearing(fullscreen bool, framePotential core.Potential, title string, si
 		view.Window = sdl2.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
 	}
 
-	go func() {
-		for core.Alive {
-			time.Sleep(time.Second)
-			view.mutex.Lock()
-			fmt.Println("framecount: ", view.framecount)
-			view.framecount = 0
-			view.mutex.Unlock()
-		}
-	}()
-
 	return view
 }
 
 func (view *Tearing) Initialize() {
-	view.vertexShader = opengl.CompileShader(vertexShaderSource, gl.VERTEX_SHADER)
-	view.fragmentShader = opengl.CompileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
-	view.program = opengl.LinkPrograms(view.vertexShader, view.fragmentShader)
+	view.vertexShader = glitter.CompileShader(vertexShaderSource, gl.VERTEX_SHADER)
+	view.fragmentShader = glitter.CompileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
+	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
 
 	gl.UseProgram(view.program)
 
@@ -84,10 +69,6 @@ func (view *Tearing) Initialize() {
 }
 
 func (view *Tearing) Impulse(ctx core.Context) {
-	view.mutex.Lock()
-	view.framecount++
-	view.mutex.Unlock()
-
 	gl.ClearColor(0.25, 0.25, 0.25, 1.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 

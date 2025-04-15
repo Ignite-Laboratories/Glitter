@@ -4,16 +4,16 @@ import (
 	_ "embed"
 	"fmt"
 	"github.com/go-gl/gl/v3.3-core/gl"
-	"github.com/ignite-laboratories/host/opengl"
+	"github.com/ignite-laboratories/glitter"
 )
 
 func Init() {
 	fmt.Println("[glitter] initializing waveform shaders")
 
-	VertexShaderID = opengl.CompileShader(VertexShader, gl.VERTEX_SHADER)
-	FragmentShaderID = opengl.CompileShader(FragmentShader, gl.FRAGMENT_SHADER)
+	VertexShaderID = glitter.CompileShader(VertexShader, gl.VERTEX_SHADER)
+	FragmentShaderID = glitter.CompileShader(FragmentShader, gl.FRAGMENT_SHADER)
 	//GeometryShaderID = glitter.CompileShader(GeometryShader, gl.FRAGMENT_SHADER)
-	SimpleProgram = opengl.LinkPrograms(VertexShaderID, FragmentShaderID)
+	SimpleProgram = glitter.LinkPrograms(VertexShaderID, FragmentShaderID)
 	//GeometryProgram = glitter.LinkPrograms(VertexShaderID, GeometryShaderID, FragmentShaderID)
 
 	gl.UseProgram(SimpleProgram)
