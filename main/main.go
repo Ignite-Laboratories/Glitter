@@ -7,7 +7,7 @@ import (
 	"github.com/ignite-laboratories/core/when"
 	"github.com/ignite-laboratories/glitter/viewport"
 	"github.com/ignite-laboratories/host/mouse"
-	"github.com/ignite-laboratories/host/sdl2"
+	"github.com/ignite-laboratories/hydra/sdl2"
 	"time"
 )
 

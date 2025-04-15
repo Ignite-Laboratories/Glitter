@@ -6,7 +6,9 @@ import (
 	"github.com/ignite-laboratories/core"
 	"github.com/ignite-laboratories/core/std"
 	"github.com/ignite-laboratories/glitter"
-	"github.com/ignite-laboratories/host/sdl2"
+	"github.com/ignite-laboratories/hydra"
+	"github.com/ignite-laboratories/hydra/sdl2"
+	"github.com/veandco/go-sdl2/sdl"
 	"time"
 )
 
@@ -17,7 +19,7 @@ var fragmentShaderSource string
 var vertexShaderSource string
 
 type Tearing struct {
-	*sdl2.Window
+	*hydra.Head[*sdl.Window, sdl.GLContext, sdl.Event]
 
 	fragmentShader uint32
 	vertexShader   uint32
@@ -30,9 +32,9 @@ type Tearing struct {
 func NewTearing(fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int]) *Tearing {
 	view := &Tearing{}
 	if fullscreen {
-		view.Window = sdl2.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
+		view.Head = sdl2.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
 	} else {
-		view.Window = sdl2.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
+		view.Head = sdl2.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
 	}
 
 	return view
@@ -72,7 +74,7 @@ func (view *Tearing) Impulse(ctx core.Context) {
 	gl.ClearColor(0.25, 0.25, 0.25, 1.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-	screenWidth, screenHeight := view.Window.Handle.GetSize()
+	screenWidth, screenHeight := view.Head.Handle.GetSize()
 	resolutionUniform := gl.GetUniformLocation(view.program, gl.Str("resolution\x00"))
 	gl.Uniform2f(resolutionUniform, float32(screenWidth), float32(screenHeight))
 
@@ -85,7 +87,7 @@ func (view *Tearing) Impulse(ctx core.Context) {
 	gl.DrawArrays(gl.TRIANGLES, 0, 6)
 	gl.BindVertexArray(0)
 
-	view.Window.Handle.GLSwap()
+	view.Head.Handle.GLSwap()
 }
 
 func (view *Tearing) Cleanup() {

@@ -6,7 +6,7 @@ import (
 	"github.com/ignite-laboratories/core/std"
 	"github.com/ignite-laboratories/core/when"
 	"github.com/ignite-laboratories/glitter/viewport"
-	"github.com/ignite-laboratories/host/sdl2"
+	"github.com/ignite-laboratories/hydra/sdl2"
 )
 
 func init() {
@@ -16,6 +16,7 @@ func init() {
 var framerate = 60.0 //hz
 
 func main() {
+	core.Impulse.MaxFrequency = 1024.0
 	var windowSize = &std.XY[int]{X: 320, Y: 240}
 
 	core.Verbosef("main thread", "%d\n", debugging.GetGoroutineID())

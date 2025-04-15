@@ -1,6 +1,7 @@
 package viewport
 
 import (
+	"fmt"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/ignite-laboratories/core"
 	"github.com/ignite-laboratories/core/std"
@@ -8,14 +9,18 @@ import (
 	"github.com/ignite-laboratories/glitter"
 	"github.com/ignite-laboratories/glitter/math"
 	"github.com/ignite-laboratories/glitter/viewport/shaders"
-	"github.com/ignite-laboratories/host/sdl2"
+	"github.com/ignite-laboratories/hydra"
+	"github.com/ignite-laboratories/hydra/sdl2"
+	"github.com/veandco/go-sdl2/sdl"
 	"log"
 	"time"
 )
 
 type Waveform[TValue core.Numeric] struct {
-	*sdl2.Window
-	*temporal.Dimension[TValue, any]
+	*hydra.Head[*sdl.Window, sdl.GLContext, sdl.Event]
+
+	// Dimension provides the temporal data that drives this waveform.
+	Dimension *temporal.Dimension[TValue, any]
 
 	// TimeScale represents the dimensional bounds to render the waveform within.
 	TimeScale *std.TimeScale[TValue]
@@ -27,24 +32,38 @@ type Waveform[TValue core.Numeric] struct {
 func NewWaveform[TValue core.Numeric](fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *Waveform[TValue] {
 	view := &Waveform[TValue]{}
 	if fullscreen {
-		view.Window = sdl2.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
+		view.Head = sdl2.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
 	} else {
-		view.Window = sdl2.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
+		view.Head = sdl2.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
 	}
 	view.TimeScale = timeScale
 	view.Dimension = target
 	view.IsSigned = isSigned
 
+	view.EventHandler = view.TestInput
+
 	return view
+}
+
+func (view *Waveform[TValue]) TestInput(event sdl.Event) {
+	switch e := event.(type) {
+	case *sdl.KeyboardEvent:
+		if e.Type == sdl.KEYDOWN {
+			switch e.Keysym.Sym {
+			case sdl.K_2:
+				fmt.Println("here")
+			}
+		}
+	}
 }
 
 func (view *Waveform[TValue]) Impulse(ctx core.Context) {
 	now := time.Now()
 	oldest := now.Add(-view.TimeScale.Duration)
-	view.Mutex.Lock()
-	data := make([]std.Data[TValue], len(view.Timeline))
-	copy(data, view.Timeline)
-	view.Mutex.Unlock()
+	view.Dimension.Mutex.Lock()
+	data := make([]std.Data[TValue], len(view.Dimension.Timeline))
+	copy(data, view.Dimension.Timeline)
+	view.Dimension.Mutex.Unlock()
 
 	// Clear the screen
 	gl.ClearColor(0.25, 0.25, 0.25, 1.0)
@@ -97,7 +116,7 @@ func (view *Waveform[TValue]) Impulse(ctx core.Context) {
 	gl.DeleteBuffers(1, &vbo)
 	gl.DeleteVertexArrays(1, &vao)
 
-	view.Window.Handle.GLSwap()
+	view.Head.Handle.GLSwap()
 }
 
 func (view *Waveform[TValue]) Cleanup() {
