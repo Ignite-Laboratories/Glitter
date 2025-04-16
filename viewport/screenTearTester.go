@@ -6,19 +6,14 @@ import (
 	"github.com/ignite-laboratories/core"
 	"github.com/ignite-laboratories/core/std"
 	"github.com/ignite-laboratories/glitter"
+	"github.com/ignite-laboratories/glitter/assets"
 	"github.com/ignite-laboratories/hydra"
 	"github.com/ignite-laboratories/hydra/sdl2"
 	"github.com/veandco/go-sdl2/sdl"
 	"time"
 )
 
-//go:embed shaders/tearing.frag
-var fragmentShaderSource string
-
-//go:embed shaders/tearing.vert
-var vertexShaderSource string
-
-type Tearing struct {
+type ScreenTearTester struct {
 	*hydra.Head[*sdl.Window, sdl.GLContext, sdl.Event]
 
 	fragmentShader uint32
@@ -29,8 +24,8 @@ type Tearing struct {
 	vertices       []float32
 }
 
-func NewTearing(fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int]) *Tearing {
-	view := &Tearing{}
+func NewScreenTearTester(fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int]) *ScreenTearTester {
+	view := &ScreenTearTester{}
 	if fullscreen {
 		view.Head = sdl2.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
 	} else {
@@ -40,9 +35,11 @@ func NewTearing(fullscreen bool, framePotential core.Potential, title string, si
 	return view
 }
 
-func (view *Tearing) Initialize() {
-	view.vertexShader = glitter.CompileShader(vertexShaderSource, gl.VERTEX_SHADER)
-	view.fragmentShader = glitter.CompileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
+func (view *ScreenTearTester) Initialize() {
+	assets.Get.Shader("screenTearTester.vert")
+
+	view.vertexShader = glitter.CompileShader(assets.Get.Shader("screenTearTester.vert"), gl.VERTEX_SHADER)
+	view.fragmentShader = glitter.CompileShader(assets.Get.Shader("screenTearTester.frag"), gl.FRAGMENT_SHADER)
 	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
 
 	gl.UseProgram(view.program)
@@ -70,7 +67,7 @@ func (view *Tearing) Initialize() {
 	gl.BindVertexArray(0)
 }
 
-func (view *Tearing) Impulse(ctx core.Context) {
+func (view *ScreenTearTester) Impulse(ctx core.Context) {
 	gl.ClearColor(0.25, 0.25, 0.25, 1.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
@@ -90,7 +87,7 @@ func (view *Tearing) Impulse(ctx core.Context) {
 	view.Head.Handle.GLSwap()
 }
 
-func (view *Tearing) Cleanup() {
+func (view *ScreenTearTester) Cleanup() {
 	gl.DeleteVertexArrays(1, &view.vao)
 	gl.DeleteBuffers(1, &view.vbo)
 	gl.DeleteShader(view.vertexShader)

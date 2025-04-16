@@ -7,8 +7,8 @@ import (
 	"github.com/ignite-laboratories/core/std"
 	"github.com/ignite-laboratories/core/temporal"
 	"github.com/ignite-laboratories/glitter"
+	"github.com/ignite-laboratories/glitter/assets"
 	"github.com/ignite-laboratories/glitter/math"
-	"github.com/ignite-laboratories/glitter/viewport/shaders"
 	"github.com/ignite-laboratories/hydra"
 	"github.com/ignite-laboratories/hydra/sdl2"
 	"github.com/veandco/go-sdl2/sdl"
@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-type Waveform[TValue core.Numeric] struct {
+type BasicWaveform[TValue core.Numeric] struct {
 	*hydra.Head[*sdl.Window, sdl.GLContext, sdl.Event]
 
 	// Dimension provides the temporal data that drives this waveform.
@@ -27,10 +27,14 @@ type Waveform[TValue core.Numeric] struct {
 
 	// IsSigned indicates whether the type of this dimension is signed or not.
 	IsSigned bool
+
+	fragmentShader uint32
+	vertexShader   uint32
+	program        uint32
 }
 
-func NewWaveform[TValue core.Numeric](fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *Waveform[TValue] {
-	view := &Waveform[TValue]{}
+func NewWaveform[TValue core.Numeric](fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *BasicWaveform[TValue] {
+	view := &BasicWaveform[TValue]{}
 	if fullscreen {
 		view.Head = sdl2.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
 	} else {
@@ -45,7 +49,7 @@ func NewWaveform[TValue core.Numeric](fullscreen bool, framePotential core.Poten
 	return view
 }
 
-func (view *Waveform[TValue]) TestInput(event sdl.Event) {
+func (view *BasicWaveform[TValue]) TestInput(event sdl.Event) {
 	switch e := event.(type) {
 	case *sdl.KeyboardEvent:
 		if e.Type == sdl.KEYDOWN {
@@ -57,7 +61,7 @@ func (view *Waveform[TValue]) TestInput(event sdl.Event) {
 	}
 }
 
-func (view *Waveform[TValue]) Impulse(ctx core.Context) {
+func (view *BasicWaveform[TValue]) Impulse(ctx core.Context) {
 	now := time.Now()
 	oldest := now.Add(-view.TimeScale.Duration)
 	view.Dimension.Mutex.Lock()
@@ -69,7 +73,7 @@ func (view *Waveform[TValue]) Impulse(ctx core.Context) {
 	gl.ClearColor(0.25, 0.25, 0.25, 1.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-	locOfProjectionUniform := gl.GetUniformLocation(shaders.SimpleProgram, gl.Str("uProjectionMatrix\x00"))
+	locOfProjectionUniform := gl.GetUniformLocation(view.program, gl.Str("uProjectionMatrix\x00"))
 	if locOfProjectionUniform == -1 {
 		log.Fatalln("Failed to find uniform uProjectionMatrix")
 	}
@@ -119,11 +123,14 @@ func (view *Waveform[TValue]) Impulse(ctx core.Context) {
 	view.Head.Handle.GLSwap()
 }
 
-func (view *Waveform[TValue]) Cleanup() {
-
+func (view *BasicWaveform[TValue]) Cleanup() {
+	gl.DeleteShader(view.vertexShader)
+	gl.DeleteShader(view.fragmentShader)
+	gl.DeleteProgram(view.program)
 }
 
-func (view *Waveform[TValue]) Initialize() {
-	//glitter.InitializeGL(view.Head)
-	shaders.Init()
+func (view *BasicWaveform[TValue]) Initialize() {
+	view.vertexShader = glitter.CompileShader(assets.Get.Shader("basicWaveform.vert"), gl.VERTEX_SHADER)
+	view.fragmentShader = glitter.CompileShader(assets.Get.Shader("basicWaveform.frag"), gl.FRAGMENT_SHADER)
+	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
 }
