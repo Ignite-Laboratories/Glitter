@@ -7,7 +7,6 @@ import (
 	"github.com/ignite-laboratories/core/temporal"
 	"github.com/ignite-laboratories/glitter"
 	"github.com/ignite-laboratories/glitter/assets"
-	"github.com/ignite-laboratories/glitter/math"
 	"github.com/ignite-laboratories/hydra/glfw"
 	"log"
 	"time"
@@ -30,18 +29,26 @@ type BasicWaveformGLFW[TValue core.Numeric] struct {
 	program        uint32
 }
 
-func NewBasicWaveformGLFW[TValue core.Numeric](fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *BasicWaveformGLFW[TValue] {
+func NewBasicWaveformGLFW[TValue core.Numeric](engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *BasicWaveformGLFW[TValue] {
 	view := &BasicWaveformGLFW[TValue]{}
 	if fullscreen {
-		view.Head = glfw.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
+		view.Head = glfw.CreateFullscreenWindow(engine, title, view, framePotential, false)
 	} else {
-		view.Head = glfw.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
+		view.Head = glfw.CreateWindow(engine, title, size, pos, view, framePotential, false)
 	}
 	view.TimeScale = timeScale
 	view.Dimension = target
 	view.IsSigned = isSigned
 
 	return view
+}
+
+func (view *BasicWaveformGLFW[TValue]) Initialize() {
+	view.vertexShader = glitter.CompileShader(assets.Get.Shader("basicWaveform/basicWaveform.vert"), gl.VERTEX_SHADER)
+	view.fragmentShader = glitter.CompileShader(assets.Get.Shader("basicWaveform/basicWaveform.frag"), gl.FRAGMENT_SHADER)
+	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
+
+	gl.UseProgram(view.program)
 }
 
 func (view *BasicWaveformGLFW[TValue]) Impulse(ctx core.Context) {
@@ -73,9 +80,9 @@ func (view *BasicWaveformGLFW[TValue]) Impulse(ctx core.Context) {
 
 	var projection []float32
 	if view.IsSigned {
-		projection = math.Ortho(0.0, float64(view.TimeScale.Duration), float64(-(view.TimeScale.Height / 2)), float64(view.TimeScale.Height/2), -1.0, 1.0) // Example
+		projection = glitter.Ortho(0.0, float64(view.TimeScale.Duration), float64(-(view.TimeScale.Height / 2)), float64(view.TimeScale.Height/2), -1.0, 1.0) // Example
 	} else {
-		projection = math.Ortho(0.0, float64(view.TimeScale.Duration), 0, float64(view.TimeScale.Height), -1.0, 1.0) // Example
+		projection = glitter.Ortho(0.0, float64(view.TimeScale.Duration), 0, float64(view.TimeScale.Height), -1.0, 1.0) // Example
 	}
 	gl.UniformMatrix4fv(locOfProjectionUniform, 1, false, &projection[0])
 
@@ -108,10 +115,4 @@ func (view *BasicWaveformGLFW[TValue]) Cleanup() {
 	gl.DeleteShader(view.vertexShader)
 	gl.DeleteShader(view.fragmentShader)
 	gl.DeleteProgram(view.program)
-}
-
-func (view *BasicWaveformGLFW[TValue]) Initialize() {
-	view.vertexShader = glitter.CompileShader(assets.Get.Shader("basicWaveform/basicWaveform.vert"), gl.VERTEX_SHADER)
-	view.fragmentShader = glitter.CompileShader(assets.Get.Shader("basicWaveform/basicWaveform.frag"), gl.FRAGMENT_SHADER)
-	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
 }

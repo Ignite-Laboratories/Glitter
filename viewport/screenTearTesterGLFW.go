@@ -22,12 +22,12 @@ type ScreenTearTesterGLFW struct {
 	vertices       []float32
 }
 
-func NewScreenTearTesterGLFW(fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int]) *ScreenTearTesterGLFW {
+func NewScreenTearTesterGLFW(engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int]) *ScreenTearTesterGLFW {
 	view := &ScreenTearTesterGLFW{}
 	if fullscreen {
-		view.Head = glfw.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
+		view.Head = glfw.CreateFullscreenWindow(engine, title, view, framePotential, false)
 	} else {
-		view.Head = glfw.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
+		view.Head = glfw.CreateWindow(engine, title, size, pos, view, framePotential, false)
 	}
 
 	return view

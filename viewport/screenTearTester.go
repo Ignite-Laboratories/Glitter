@@ -22,12 +22,12 @@ type ScreenTearTester struct {
 	vertices       []float32
 }
 
-func NewScreenTearTester(fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int]) *ScreenTearTester {
+func NewScreenTearTester(engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int]) *ScreenTearTester {
 	view := &ScreenTearTester{}
 	if fullscreen {
-		view.Head = sdl2.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
+		view.Head = sdl2.CreateFullscreenWindow(engine, title, view, framePotential, false)
 	} else {
-		view.Head = sdl2.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
+		view.Head = sdl2.CreateWindow(engine, title, size, pos, view, framePotential, false)
 	}
 
 	return view

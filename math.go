@@ -1,4 +1,4 @@
-package math
+package glitter
 
 import (
 	"gonum.org/v1/gonum/mat"
