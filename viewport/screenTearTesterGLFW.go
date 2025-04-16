@@ -2,14 +2,12 @@ package viewport
 
 import (
 	_ "embed"
-	"fmt"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/ignite-laboratories/core"
 	"github.com/ignite-laboratories/core/std"
 	"github.com/ignite-laboratories/glitter"
 	"github.com/ignite-laboratories/glitter/assets"
 	"github.com/ignite-laboratories/hydra/glfw"
-	"sync"
 	"time"
 )
 
@@ -22,9 +20,6 @@ type ScreenTearTesterGLFW struct {
 	vao            uint32
 	vbo            uint32
 	vertices       []float32
-
-	framerate int
-	mutex     sync.Mutex
 }
 
 func NewScreenTearTesterGLFW(fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int]) *ScreenTearTesterGLFW {
@@ -34,16 +29,6 @@ func NewScreenTearTesterGLFW(fullscreen bool, framePotential core.Potential, tit
 	} else {
 		view.Head = glfw.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
 	}
-
-	go func() {
-		for core.Alive {
-			time.Sleep(time.Second)
-			view.mutex.Lock()
-			fmt.Println(view.framerate)
-			view.framerate = 0
-			view.mutex.Unlock()
-		}
-	}()
 
 	return view
 }
@@ -79,10 +64,6 @@ func (view *ScreenTearTesterGLFW) Initialize() {
 }
 
 func (view *ScreenTearTesterGLFW) Impulse(ctx core.Context) {
-	view.mutex.Lock()
-	view.framerate++
-	view.mutex.Unlock()
-
 	gl.ClearColor(0.25, 0.25, 0.25, 1.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
