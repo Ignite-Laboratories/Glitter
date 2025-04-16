@@ -67,7 +67,7 @@ func (view *ScreenTearTester) Impulse(ctx core.Context) {
 	gl.ClearColor(0.25, 0.25, 0.25, 1.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-	screenWidth, screenHeight := view.Head.Handle.GetSize()
+	screenWidth, screenHeight := view.Head.Definition.Handle.GetSize()
 	resolutionUniform := gl.GetUniformLocation(view.program, gl.Str("resolution\x00"))
 	gl.Uniform2f(resolutionUniform, float32(screenWidth), float32(screenHeight))
 

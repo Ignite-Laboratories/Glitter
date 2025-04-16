@@ -43,7 +43,7 @@ func NewBasicWaveform[TValue core.Numeric](fullscreen bool, framePotential core.
 	view.Dimension = target
 	view.IsSigned = isSigned
 
-	view.EventHandler = view.TestInput
+	view.Definition.EventHandler = view.TestInput
 
 	return view
 }
