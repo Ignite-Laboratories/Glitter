@@ -16,7 +16,6 @@ func init() {
 var framerate = 60.0 //hz
 
 func main() {
-	core.Impulse.MaxFrequency = 1024.0
 	var windowSize = &std.XY[int]{X: 320, Y: 240}
 
 	core.Verbosef("main thread", "%d\n", debug.GetGoroutineID())

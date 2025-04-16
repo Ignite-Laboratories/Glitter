@@ -8,13 +8,13 @@ import (
 	"github.com/ignite-laboratories/core/std"
 	"github.com/ignite-laboratories/glitter"
 	"github.com/ignite-laboratories/glitter/assets"
-	"github.com/ignite-laboratories/hydra/sdl2"
+	"github.com/ignite-laboratories/hydra/glfw"
 	"sync"
 	"time"
 )
 
-type ScreenTearTester struct {
-	*sdl2.Head
+type ScreenTearTesterGLFW struct {
+	*glfw.Head
 
 	fragmentShader uint32
 	vertexShader   uint32
@@ -27,12 +27,12 @@ type ScreenTearTester struct {
 	mutex     sync.Mutex
 }
 
-func NewScreenTearTester(fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int]) *ScreenTearTester {
-	view := &ScreenTearTester{}
+func NewScreenTearTesterGLFW(fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int]) *ScreenTearTesterGLFW {
+	view := &ScreenTearTesterGLFW{}
 	if fullscreen {
-		view.Head = sdl2.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
+		view.Head = glfw.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
 	} else {
-		view.Head = sdl2.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
+		view.Head = glfw.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
 	}
 
 	go func() {
@@ -48,7 +48,7 @@ func NewScreenTearTester(fullscreen bool, framePotential core.Potential, title s
 	return view
 }
 
-func (view *ScreenTearTester) Initialize() {
+func (view *ScreenTearTesterGLFW) Initialize() {
 	view.vertexShader = glitter.CompileShader(assets.Get.Shader("screenTearTester/screenTearTester.vert"), gl.VERTEX_SHADER)
 	view.fragmentShader = glitter.CompileShader(assets.Get.Shader("screenTearTester/screenTearTester.frag"), gl.FRAGMENT_SHADER)
 	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
@@ -78,7 +78,7 @@ func (view *ScreenTearTester) Initialize() {
 	gl.BindVertexArray(0)
 }
 
-func (view *ScreenTearTester) Impulse(ctx core.Context) {
+func (view *ScreenTearTesterGLFW) Impulse(ctx core.Context) {
 	view.mutex.Lock()
 	view.framerate++
 	view.mutex.Unlock()
@@ -100,7 +100,7 @@ func (view *ScreenTearTester) Impulse(ctx core.Context) {
 	gl.BindVertexArray(0)
 }
 
-func (view *ScreenTearTester) Cleanup() {
+func (view *ScreenTearTesterGLFW) Cleanup() {
 	gl.DeleteVertexArrays(1, &view.vao)
 	gl.DeleteBuffers(1, &view.vbo)
 	gl.DeleteShader(view.vertexShader)

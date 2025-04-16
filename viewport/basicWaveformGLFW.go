@@ -1,7 +1,6 @@
 package viewport
 
 import (
-	"fmt"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/ignite-laboratories/core"
 	"github.com/ignite-laboratories/core/std"
@@ -9,14 +8,13 @@ import (
 	"github.com/ignite-laboratories/glitter"
 	"github.com/ignite-laboratories/glitter/assets"
 	"github.com/ignite-laboratories/glitter/math"
-	"github.com/ignite-laboratories/hydra/sdl2"
-	"github.com/veandco/go-sdl2/sdl"
+	"github.com/ignite-laboratories/hydra/glfw"
 	"log"
 	"time"
 )
 
-type BasicWaveform[TValue core.Numeric] struct {
-	*sdl2.Head
+type BasicWaveformGLFW[TValue core.Numeric] struct {
+	*glfw.Head
 
 	// Dimension provides the temporal data that drives this waveform.
 	Dimension *temporal.Dimension[TValue, any]
@@ -32,35 +30,21 @@ type BasicWaveform[TValue core.Numeric] struct {
 	program        uint32
 }
 
-func NewBasicWaveform[TValue core.Numeric](fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *BasicWaveform[TValue] {
-	view := &BasicWaveform[TValue]{}
+func NewBasicWaveformGLFW[TValue core.Numeric](fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *BasicWaveformGLFW[TValue] {
+	view := &BasicWaveformGLFW[TValue]{}
 	if fullscreen {
-		view.Head = sdl2.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
+		view.Head = glfw.CreateFullscreenWindow(core.Impulse, title, view, framePotential, false)
 	} else {
-		view.Head = sdl2.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
+		view.Head = glfw.CreateWindow(core.Impulse, title, size, pos, view, framePotential, false)
 	}
 	view.TimeScale = timeScale
 	view.Dimension = target
 	view.IsSigned = isSigned
 
-	view.EventHandler = view.TestInput
-
 	return view
 }
 
-func (view *BasicWaveform[TValue]) TestInput(event sdl.Event) {
-	switch e := event.(type) {
-	case *sdl.KeyboardEvent:
-		if e.Type == sdl.KEYDOWN {
-			switch e.Keysym.Sym {
-			case sdl.K_2:
-				fmt.Println("here")
-			}
-		}
-	}
-}
-
-func (view *BasicWaveform[TValue]) Impulse(ctx core.Context) {
+func (view *BasicWaveformGLFW[TValue]) Impulse(ctx core.Context) {
 	now := time.Now()
 	oldest := now.Add(-view.TimeScale.Duration)
 	view.Dimension.Mutex.Lock()
@@ -120,13 +104,13 @@ func (view *BasicWaveform[TValue]) Impulse(ctx core.Context) {
 	gl.DeleteVertexArrays(1, &vao)
 }
 
-func (view *BasicWaveform[TValue]) Cleanup() {
+func (view *BasicWaveformGLFW[TValue]) Cleanup() {
 	gl.DeleteShader(view.vertexShader)
 	gl.DeleteShader(view.fragmentShader)
 	gl.DeleteProgram(view.program)
 }
 
-func (view *BasicWaveform[TValue]) Initialize() {
+func (view *BasicWaveformGLFW[TValue]) Initialize() {
 	view.vertexShader = glitter.CompileShader(assets.Get.Shader("basicWaveform/basicWaveform.vert"), gl.VERTEX_SHADER)
 	view.fragmentShader = glitter.CompileShader(assets.Get.Shader("basicWaveform/basicWaveform.frag"), gl.FRAGMENT_SHADER)
 	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
