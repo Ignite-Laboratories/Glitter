@@ -27,6 +27,9 @@ type BasicWaveformGLFW[TValue core.Numeric] struct {
 	fragmentShader uint32
 	vertexShader   uint32
 	program        uint32
+	vao            uint32
+	vbo            uint32
+	vertices       []float32
 }
 
 func NewBasicWaveformGLFW[TValue core.Numeric](engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *BasicWaveformGLFW[TValue] {
@@ -49,6 +52,12 @@ func (view *BasicWaveformGLFW[TValue]) Initialize() {
 	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
 
 	gl.UseProgram(view.program)
+
+	gl.GenVertexArrays(1, &view.vao)
+	gl.BindVertexArray(view.vao)
+
+	gl.GenBuffers(1, &view.vbo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, view.vbo)
 }
 
 func (view *BasicWaveformGLFW[TValue]) Impulse(ctx core.Context) {
@@ -86,15 +95,9 @@ func (view *BasicWaveformGLFW[TValue]) Impulse(ctx core.Context) {
 	}
 	gl.UniformMatrix4fv(locOfProjectionUniform, 1, false, &projection[0])
 
-	// Send them to the GPU using a VBO
-	vbo := glitter.CreateVBO(vertices)
-
-	// Set up the VAO
-	var vao uint32
-	gl.GenVertexArrays(1, &vao)
-	gl.BindVertexArray(vao)
-	// Bind the VBO to the VAO
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	if len(vertices) > 0 {
+		gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
+	}
 
 	// Tell GL how to walk the vertex data (2 floats per point, 4 bytes per)
 	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 2*4, nil)
@@ -104,15 +107,12 @@ func (view *BasicWaveformGLFW[TValue]) Impulse(ctx core.Context) {
 	gl.LineWidth(5.0)
 	pointCount := len(vertices) / 2
 	gl.DrawArrays(gl.LINE_STRIP, 0, int32(pointCount))
-
-	// Cleanup
-	gl.BindVertexArray(0)
-	gl.DeleteBuffers(1, &vbo)
-	gl.DeleteVertexArrays(1, &vao)
 }
 
 func (view *BasicWaveformGLFW[TValue]) Cleanup() {
 	gl.DeleteShader(view.vertexShader)
 	gl.DeleteShader(view.fragmentShader)
 	gl.DeleteProgram(view.program)
+	gl.DeleteVertexArrays(1, &view.vao)
+	gl.DeleteBuffers(1, &view.vbo)
 }

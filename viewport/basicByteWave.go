@@ -51,6 +51,12 @@ func (view *BasicByteWave) Initialize() {
 	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
 
 	gl.UseProgram(view.program)
+
+	gl.GenVertexArrays(1, &view.vao)
+	gl.BindVertexArray(view.vao)
+
+	gl.GenBuffers(1, &view.vbo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, view.vbo)
 }
 
 func (view *BasicByteWave) Impulse(ctx core.Context) {
@@ -81,15 +87,10 @@ func (view *BasicByteWave) Impulse(ctx core.Context) {
 	var projection = glitter.Ortho(0.0, float64(len(data)), 0, float64(math.MaxUint8), -1.0, 1.0)
 	gl.UniformMatrix4fv(locOfProjectionUniform, 1, false, &projection[0])
 
-	// Send them to the GPU using a VBO
-	vbo := glitter.CreateVBO(vertices)
-
-	// Set up the VAO
-	var vao uint32
-	gl.GenVertexArrays(1, &vao)
-	gl.BindVertexArray(vao)
-	// Bind the VBO to the VAO
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	// Send the vertices to the GPU using a VBO
+	if len(vertices) > 0 {
+		gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
+	}
 
 	// Tell GL how to walk the vertex data (2 floats per point, 4 bytes per)
 	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 2*4, nil)
@@ -100,15 +101,12 @@ func (view *BasicByteWave) Impulse(ctx core.Context) {
 	pointCount := len(vertices) / 2
 	gl.DrawArrays(gl.LINE_STRIP, 0, int32(pointCount))
 
-	// Cleanup
-	gl.BindVertexArray(0)
-	gl.DeleteBuffers(1, &vbo)
-	gl.DeleteVertexArrays(1, &vao)
-
 }
 
 func (view *BasicByteWave) Cleanup() {
 	gl.DeleteShader(view.vertexShader)
 	gl.DeleteShader(view.fragmentShader)
 	gl.DeleteProgram(view.program)
+	gl.DeleteVertexArrays(1, &view.vao)
+	gl.DeleteBuffers(1, &view.vbo)
 }
