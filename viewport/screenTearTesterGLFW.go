@@ -8,6 +8,7 @@ import (
 	"github.com/ignite-laboratories/glitter"
 	"github.com/ignite-laboratories/glitter/assets"
 	"github.com/ignite-laboratories/hydra/glfw"
+	"sync"
 	"time"
 )
 
@@ -20,6 +21,7 @@ type ScreenTearTesterGLFW struct {
 	vao            uint32
 	vbo            uint32
 	vertices       []float32
+	mutex          sync.Mutex
 }
 
 func NewScreenTearTesterGLFW(engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int]) *ScreenTearTesterGLFW {
@@ -31,6 +33,14 @@ func NewScreenTearTesterGLFW(engine *core.Engine, fullscreen bool, framePotentia
 	}
 
 	return view
+}
+
+func (view *ScreenTearTesterGLFW) Lock() {
+	view.mutex.Lock()
+}
+
+func (view *ScreenTearTesterGLFW) Unlock() {
+	view.mutex.Unlock()
 }
 
 func (view *ScreenTearTesterGLFW) Initialize() {

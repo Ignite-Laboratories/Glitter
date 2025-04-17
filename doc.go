@@ -1,4 +1,4 @@
-// Package glitter provides a factory for creating graphical outputs.
+// Package glitter provides a toolkit for creating graphical systems.
 package glitter
 
 import (

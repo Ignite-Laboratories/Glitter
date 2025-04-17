@@ -9,6 +9,7 @@ import (
 	"github.com/ignite-laboratories/glitter/assets"
 	"github.com/ignite-laboratories/hydra/glfw"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -30,6 +31,7 @@ type BasicWaveformGLFW[TValue core.Numeric] struct {
 	vao            uint32
 	vbo            uint32
 	vertices       []float32
+	mutex          sync.Mutex
 }
 
 func NewBasicWaveformGLFW[TValue core.Numeric](engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *BasicWaveformGLFW[TValue] {
@@ -44,6 +46,14 @@ func NewBasicWaveformGLFW[TValue core.Numeric](engine *core.Engine, fullscreen b
 	view.IsSigned = isSigned
 
 	return view
+}
+
+func (view *BasicWaveformGLFW[TValue]) Lock() {
+	view.mutex.Lock()
+}
+
+func (view *BasicWaveformGLFW[TValue]) Unlock() {
+	view.mutex.Unlock()
 }
 
 func (view *BasicWaveformGLFW[TValue]) Initialize() {

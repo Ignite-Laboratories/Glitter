@@ -4,13 +4,13 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
-// Ortho returns a 4x4 orthographic projection matrix.
+// Ortho returns a flattened 4x4 orthographic projection matrix.
 //
 // left, right: the visible range of X (horizontal axis in world coordinates)
-// bottom, top: the visible range of Y (vertical axis in world coordinates)
-// near, far: the visible range of Z (depth, used for layering 2D elements or 3D rendering)
 //
-// The matrix can be directly passed to OpenGL by first flattening into a 1D array
+// bottom, top: the visible range of Y (vertical axis in world coordinates)
+//
+// near, far: the visible range of Z (depth axis in world coordinates)
 func Ortho(left, right, bottom, top, near, far float64) []float32 {
 	// Create a 4x4 dense matrix with all elements set to zero
 	ortho := mat.NewDense(4, 4, nil)

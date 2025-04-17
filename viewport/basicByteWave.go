@@ -45,9 +45,17 @@ func (view *BasicByteWave) SetBytes(bytes []byte) {
 	view.mutex.Unlock()
 }
 
+func (view *BasicByteWave) Lock() {
+	view.mutex.Lock()
+}
+
+func (view *BasicByteWave) Unlock() {
+	view.mutex.Unlock()
+}
+
 func (view *BasicByteWave) Initialize() {
 	view.vertexShader = glitter.CompileShader(assets.Get.Shader("basicWaveform/basicWaveform.vert"), gl.VERTEX_SHADER)
-	view.fragmentShader = glitter.CompileShader(assets.Get.Shader("basicWaveform/basicWaveform.frag"), gl.FRAGMENT_SHADER)
+	view.fragmentShader = glitter.CompileShader(assets.Get.Shader("basicWaveform/basicWaveformColor.frag"), gl.FRAGMENT_SHADER)
 	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
 
 	gl.UseProgram(view.program)
@@ -60,19 +68,26 @@ func (view *BasicByteWave) Initialize() {
 }
 
 func (view *BasicByteWave) Impulse(ctx core.Context) {
-	view.mutex.Lock()
 	data := make([]byte, len(view.bytes))
 	copy(data, view.bytes)
-	view.mutex.Unlock()
 
-	// Clear the screen
-	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
+	// Clear the screen 410445
+	bgColor, _ := std.RGBFromHex("44", "44", "44")
+	fgColor, _ := std.RGBFromHex("FF", "A5", "5D")
+
+	gl.ClearColor(bgColor.SplitRGBA())
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	locOfProjectionUniform := gl.GetUniformLocation(view.program, gl.Str("uProjectionMatrix\x00"))
 	if locOfProjectionUniform == -1 {
-		log.Fatalln("Failed to find uniform uProjectionMatrix")
+		log.Fatalln("Failed to find uniform 'uProjectionMatrix'")
 	}
+
+	colorLocation := gl.GetUniformLocation(view.program, gl.Str("fgColor\x00"))
+	if colorLocation == -1 {
+		log.Fatalln("Unable to find uniform location for 'fgColor'")
+	}
+	gl.Uniform4f(fgColor.SplitRGBAWithLocation(colorLocation))
 
 	// Prepare the vertices
 	vertices := make([]float32, len(data)*2) // 2 floats per point (X, Y)
@@ -97,7 +112,7 @@ func (view *BasicByteWave) Impulse(ctx core.Context) {
 	gl.EnableVertexAttribArray(0)
 
 	// Draw the line
-	gl.LineWidth(2.0)
+	gl.LineWidth(2.5)
 	pointCount := len(vertices) / 2
 	gl.DrawArrays(gl.LINE_STRIP, 0, int32(pointCount))
 

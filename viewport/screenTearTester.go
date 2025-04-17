@@ -8,6 +8,7 @@ import (
 	"github.com/ignite-laboratories/glitter"
 	"github.com/ignite-laboratories/glitter/assets"
 	"github.com/ignite-laboratories/hydra/sdl2"
+	"sync"
 	"time"
 )
 
@@ -20,6 +21,7 @@ type ScreenTearTester struct {
 	vao            uint32
 	vbo            uint32
 	vertices       []float32
+	mutex          sync.Mutex
 }
 
 func NewScreenTearTester(engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int]) *ScreenTearTester {
@@ -31,6 +33,14 @@ func NewScreenTearTester(engine *core.Engine, fullscreen bool, framePotential co
 	}
 
 	return view
+}
+
+func (view *ScreenTearTester) Lock() {
+	view.mutex.Lock()
+}
+
+func (view *ScreenTearTester) Unlock() {
+	view.mutex.Unlock()
 }
 
 func (view *ScreenTearTester) Initialize() {

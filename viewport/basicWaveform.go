@@ -11,6 +11,7 @@ import (
 	"github.com/ignite-laboratories/hydra/sdl2"
 	"github.com/veandco/go-sdl2/sdl"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -32,6 +33,7 @@ type BasicWaveform[TValue core.Numeric] struct {
 	vao            uint32
 	vbo            uint32
 	vertices       []float32
+	mutex          sync.Mutex
 }
 
 func NewBasicWaveform[TValue core.Numeric](engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *BasicWaveform[TValue] {
@@ -48,6 +50,14 @@ func NewBasicWaveform[TValue core.Numeric](engine *core.Engine, fullscreen bool,
 	view.Definition.EventHandler = view.TestInput
 
 	return view
+}
+
+func (view *BasicWaveform[TValue]) Lock() {
+	view.mutex.Lock()
+}
+
+func (view *BasicWaveform[TValue]) Unlock() {
+	view.mutex.Unlock()
 }
 
 func (view *BasicWaveform[TValue]) TestInput(event sdl.Event) {
