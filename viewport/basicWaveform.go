@@ -73,8 +73,8 @@ func (view *BasicWaveform[TValue]) TestInput(event sdl.Event) {
 }
 
 func (view *BasicWaveform[TValue]) Initialize() {
-	view.vertexShader = glitter.CompileShader(assets.Get.Shader("basicWaveform/basicWaveform.vert"), gl.VERTEX_SHADER)
-	view.fragmentShader = glitter.CompileShader(assets.Get.Shader("basicWaveform/basicWaveform.frag"), gl.FRAGMENT_SHADER)
+	view.vertexShader = glitter.CompileShader(assets.Get.Shader("waveform/basicWaveform.vert"), gl.VERTEX_SHADER)
+	view.fragmentShader = glitter.CompileShader(assets.Get.Shader("waveform/basicWaveform.frag"), gl.FRAGMENT_SHADER)
 	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
 
 	gl.UseProgram(view.program)

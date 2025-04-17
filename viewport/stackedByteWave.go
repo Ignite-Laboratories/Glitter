@@ -12,10 +12,15 @@ import (
 	"sync"
 )
 
-type BasicByteWave struct {
+type StackedByteWave struct {
 	*sdl2.Head
 
-	bytes []byte
+	data []struct {
+		Color std.RGBA
+		Bytes []byte
+	}
+	bgColor std.RGBA
+
 	mutex sync.Mutex
 
 	fragmentShader uint32
@@ -23,12 +28,18 @@ type BasicByteWave struct {
 	program        uint32
 	vao            uint32
 	vbo            uint32
+	projLoc        int32
+	colorLoc       int32
 	vertices       []float32
 }
 
-func NewBasicByteWave(engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], bytes []byte) *BasicByteWave {
-	view := &BasicByteWave{}
-	view.bytes = bytes
+func NewStackedByteWave(engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], bgColor std.RGBA) *StackedByteWave {
+	view := &StackedByteWave{}
+	view.bgColor = bgColor
+	view.data = make([]struct {
+		Color std.RGBA
+		Bytes []byte
+	}, 0)
 
 	if fullscreen {
 		view.Head = sdl2.CreateFullscreenWindow(engine, title, view, framePotential, false)
@@ -39,21 +50,30 @@ func NewBasicByteWave(engine *core.Engine, fullscreen bool, framePotential core.
 	return view
 }
 
-func (view *BasicByteWave) SetBytes(bytes []byte) {
+func (view *StackedByteWave) SetBGColor(color std.RGBA) {
+	view.Lock()
+	view.bgColor = color
+	view.Unlock()
+}
+
+func (view *StackedByteWave) AddBytes(color std.RGBA, bytes []byte) {
+	view.Lock()
+	view.data = append(view.data, struct {
+		Color std.RGBA
+		Bytes []byte
+	}{color, bytes})
+	view.Unlock()
+}
+
+func (view *StackedByteWave) Lock() {
 	view.mutex.Lock()
-	view.bytes = bytes
+}
+
+func (view *StackedByteWave) Unlock() {
 	view.mutex.Unlock()
 }
 
-func (view *BasicByteWave) Lock() {
-	view.mutex.Lock()
-}
-
-func (view *BasicByteWave) Unlock() {
-	view.mutex.Unlock()
-}
-
-func (view *BasicByteWave) Initialize() {
+func (view *StackedByteWave) Initialize() {
 	view.vertexShader = glitter.CompileShader(assets.Get.Shader("waveform/basicWaveform.vert"), gl.VERTEX_SHADER)
 	view.fragmentShader = glitter.CompileShader(assets.Get.Shader("waveform/basicWaveformColor.frag"), gl.FRAGMENT_SHADER)
 	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
@@ -65,33 +85,33 @@ func (view *BasicByteWave) Initialize() {
 
 	gl.GenBuffers(1, &view.vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, view.vbo)
+
+	view.projLoc = gl.GetUniformLocation(view.program, gl.Str("uProjectionMatrix\x00"))
+	if view.projLoc == -1 {
+		log.Fatalln("Failed to find uniform 'uProjectionMatrix'")
+	}
+
+	view.colorLoc = gl.GetUniformLocation(view.program, gl.Str("fgColor\x00"))
+	if view.colorLoc == -1 {
+		log.Fatalln("Unable to find uniform location for 'fgColor'")
+	}
 }
 
-func (view *BasicByteWave) Impulse(ctx core.Context) {
-	data := make([]byte, len(view.bytes))
-	copy(data, view.bytes)
-
-	// Clear the screen 410445
-	bgColor, _ := std.RGBFromHex("44", "44", "44")
-	fgColor, _ := std.RGBFromHex("FF", "A5", "5D")
-
-	gl.ClearColor(bgColor.SplitRGBA())
+func (view *StackedByteWave) Impulse(ctx core.Context) {
+	gl.ClearColor(view.bgColor.SplitRGBA())
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
+	for _, data := range view.data {
+		view.drawWave(data.Color, data.Bytes)
+	}
+}
+
+func (view *StackedByteWave) drawWave(color std.RGBA, data []byte) {
 	if len(data) == 0 {
 		return
 	}
 
-	locOfProjectionUniform := gl.GetUniformLocation(view.program, gl.Str("uProjectionMatrix\x00"))
-	if locOfProjectionUniform == -1 {
-		log.Fatalln("Failed to find uniform 'uProjectionMatrix'")
-	}
-
-	colorLocation := gl.GetUniformLocation(view.program, gl.Str("fgColor\x00"))
-	if colorLocation == -1 {
-		log.Fatalln("Unable to find uniform location for 'fgColor'")
-	}
-	gl.Uniform4f(fgColor.SplitRGBAWithLocation(colorLocation))
+	gl.Uniform4f(color.SplitRGBAWithLocation(view.colorLoc))
 
 	// Prepare the vertices
 	vertices := make([]float32, len(data)*2) // 2 floats per point (X, Y)
@@ -104,7 +124,7 @@ func (view *BasicByteWave) Impulse(ctx core.Context) {
 	}
 
 	var projection = glitter.Ortho(0.0, float64(len(data)-1), 0, float64(math.MaxUint8), -1.0, 1.0)
-	gl.UniformMatrix4fv(locOfProjectionUniform, 1, false, &projection[0])
+	gl.UniformMatrix4fv(view.projLoc, 1, false, &projection[0])
 
 	// Send the vertices to the GPU using a VBO
 	if len(vertices) > 0 {
@@ -119,10 +139,9 @@ func (view *BasicByteWave) Impulse(ctx core.Context) {
 	gl.LineWidth(2.5)
 	pointCount := len(vertices) / 2
 	gl.DrawArrays(gl.LINE_STRIP, 0, int32(pointCount))
-
 }
 
-func (view *BasicByteWave) Cleanup() {
+func (view *StackedByteWave) Cleanup() {
 	gl.DeleteShader(view.vertexShader)
 	gl.DeleteShader(view.fragmentShader)
 	gl.DeleteProgram(view.program)
