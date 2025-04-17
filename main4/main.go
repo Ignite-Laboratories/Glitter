@@ -2,13 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/ignite-laboratories/arwen"
 	"github.com/ignite-laboratories/core"
 	"github.com/ignite-laboratories/core/std"
 	"github.com/ignite-laboratories/core/when"
 	"github.com/ignite-laboratories/glitter/viewport"
 	"github.com/ignite-laboratories/hydra/sdl2"
-	"github.com/ignite-laboratories/support/ipsum"
-	"github.com/ignite-laboratories/tiny"
 )
 
 var framerate = 60.0 //Hz
@@ -16,25 +15,19 @@ var framerate = 60.0 //Hz
 func main() {
 	core.Verbose = true
 
+	source := []byte{50, 60, 70, 75, 70, 60, 50, 40, 35, 40}
+	approximation := []byte{50, 75, 50, 40}
+	delta := arwen.CreateDeltaWave(source, approximation)
+	unsigned := arwen.UnsignDeltaWave(delta)
+	fmt.Println(delta)
+	fmt.Println(unsigned)
+
 	bgColor, _ := std.RGBFromHex("44", "44", "44")
 	view := viewport.NewStackedByteWave(core.Impulse, false, when.Frequency(&framerate), "Stacked Byte Waves", nil, nil, bgColor)
 
-	data := []byte(ipsum.Paragraph[:32])
-	fgColorA, _ := std.RGBFromHex("FF", "A5", "5D")
-	view.AddBytes(fgColorA, data)
-
-	phrase := tiny.NewPhrase(data...)
-	fmt.Println(phrase.BitLength())
-	phrase.QuarterSplit()
-	fmt.Println(phrase.BitLength())
-
-	bytes, _ := phrase.ToBytesAndBits()
-	fgColorB, _ := std.RGBFromHex("AC", "C5", "72")
-	view.AddBytes(fgColorB, bytes)
-
-	data2 := []byte(ipsum.Paragraph[32:48])
-	fgColorC, _ := std.RGBFromHex("FF", "DF", "88")
-	view.AddBytes(fgColorC, data2)
+	view.AddBytes(std.RGBA{R: 1.0}, source)
+	view.AddBytes(std.RGBA{G: 1.0}, approximation)
+	view.AddBytes(std.RGBA{B: 1.0}, unsigned)
 
 	core.Impulse.StopWhen(sdl2.HasNoWindows)
 	core.Impulse.Spark()
