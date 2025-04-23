@@ -98,7 +98,7 @@ func (view *StackedByteWave) Initialize() {
 }
 
 func (view *StackedByteWave) Impulse(ctx core.Context) {
-	gl.ClearColor(view.bgColor.SplitRGBA())
+	gl.ClearColor(view.bgColor.RGBA())
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	for _, data := range view.data {
