@@ -16,10 +16,10 @@ type StackedByteWave struct {
 	*sdl2.Head
 
 	data []struct {
-		Color std.RGBA
+		Color std.RGBA[byte]
 		Bytes []byte
 	}
-	bgColor std.RGBA
+	bgColor std.RGBA[byte]
 
 	mutex sync.Mutex
 
@@ -33,11 +33,11 @@ type StackedByteWave struct {
 	vertices       []float32
 }
 
-func NewStackedByteWave(engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], bgColor std.RGBA) *StackedByteWave {
+func NewStackedByteWave(engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], bgColor std.RGBA[byte]) *StackedByteWave {
 	view := &StackedByteWave{}
 	view.bgColor = bgColor
 	view.data = make([]struct {
-		Color std.RGBA
+		Color std.RGBA[byte]
 		Bytes []byte
 	}, 0)
 
@@ -50,18 +50,29 @@ func NewStackedByteWave(engine *core.Engine, fullscreen bool, framePotential cor
 	return view
 }
 
-func (view *StackedByteWave) SetBGColor(color std.RGBA) {
+func (view *StackedByteWave) SetBGColor(color std.RGBA[byte]) {
 	view.Lock()
 	view.bgColor = color
 	view.Unlock()
 }
 
-func (view *StackedByteWave) AddBytes(color std.RGBA, bytes []byte) {
+func (view *StackedByteWave) AddBytes(color std.RGBA[byte], bytes []byte) int {
 	view.Lock()
 	view.data = append(view.data, struct {
-		Color std.RGBA
+		Color std.RGBA[byte]
 		Bytes []byte
 	}{color, bytes})
+	i := len(view.data) - 1
+	view.Unlock()
+	return i
+}
+
+func (view *StackedByteWave) UpdateBytes(index int, color std.RGBA[byte], bytes []byte) {
+	view.Lock()
+	view.data[index] = struct {
+		Color std.RGBA[byte]
+		Bytes []byte
+	}{color, bytes}
 	view.Unlock()
 }
 
@@ -98,7 +109,7 @@ func (view *StackedByteWave) Initialize() {
 }
 
 func (view *StackedByteWave) Impulse(ctx core.Context) {
-	gl.ClearColor(view.bgColor.RGBA())
+	gl.ClearColor(view.bgColor.NormalizeToFloat32().RGBA())
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	for _, data := range view.data {
@@ -106,12 +117,13 @@ func (view *StackedByteWave) Impulse(ctx core.Context) {
 	}
 }
 
-func (view *StackedByteWave) drawWave(color std.RGBA, data []byte) {
+func (view *StackedByteWave) drawWave(color std.RGBA[byte], data []byte) {
 	if len(data) == 0 {
 		return
 	}
 
-	gl.Uniform4f(color.SplitRGBAWithLocation(view.colorLoc))
+	r, g, b, a := color.NormalizeToFloat32().RGBA()
+	gl.Uniform4f(view.colorLoc, r, g, b, a)
 
 	// Prepare the vertices
 	vertices := make([]float32, len(data)*2) // 2 floats per point (X, Y)

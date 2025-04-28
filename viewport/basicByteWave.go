@@ -15,8 +15,10 @@ import (
 type BasicByteWave struct {
 	*sdl2.Head
 
-	bytes []byte
-	mutex sync.Mutex
+	bytes   []byte
+	mutex   sync.Mutex
+	bgColor std.RGBA[float32]
+	fgColor std.RGBA[float32]
 
 	fragmentShader uint32
 	vertexShader   uint32
@@ -26,9 +28,11 @@ type BasicByteWave struct {
 	vertices       []float32
 }
 
-func NewBasicByteWave(engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], bytes []byte) *BasicByteWave {
+func NewBasicByteWave(engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], bgColor std.RGBA[byte], fgColor std.RGBA[byte], bytes []byte) *BasicByteWave {
 	view := &BasicByteWave{}
 	view.bytes = bytes
+	view.bgColor = bgColor.NormalizeToFloat32()
+	view.fgColor = fgColor.NormalizeToFloat32()
 
 	if fullscreen {
 		view.Head = sdl2.CreateFullscreenWindow(engine, title, view, framePotential, false)
@@ -71,11 +75,8 @@ func (view *BasicByteWave) Impulse(ctx core.Context) {
 	data := make([]byte, len(view.bytes))
 	copy(data, view.bytes)
 
-	// Clear the screen 410445
-	bgColor, _ := std.RGBFromHex("44", "44", "44")
-	fgColor, _ := std.RGBFromHex("FF", "A5", "5D")
-
-	gl.ClearColor(bgColor.SplitRGBA())
+	// Clear the screen
+	gl.ClearColor(view.bgColor.RGBA())
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	if len(data) == 0 {
@@ -91,7 +92,8 @@ func (view *BasicByteWave) Impulse(ctx core.Context) {
 	if colorLocation == -1 {
 		log.Fatalln("Unable to find uniform location for 'fgColor'")
 	}
-	gl.Uniform4f(fgColor.SplitRGBAWithLocation(colorLocation))
+	r, g, b, a := view.fgColor.RGBA()
+	gl.Uniform4f(colorLocation, r, g, b, a)
 
 	// Prepare the vertices
 	vertices := make([]float32, len(data)*2) // 2 floats per point (X, Y)
