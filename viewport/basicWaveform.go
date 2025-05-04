@@ -1,22 +1,20 @@
 package viewport
 
 import (
-	"fmt"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/ignite-laboratories/core"
 	"github.com/ignite-laboratories/core/std"
 	"github.com/ignite-laboratories/core/temporal"
 	"github.com/ignite-laboratories/glitter"
 	"github.com/ignite-laboratories/glitter/assets"
-	"github.com/ignite-laboratories/hydra/sdl2"
-	"github.com/veandco/go-sdl2/sdl"
+	"github.com/ignite-laboratories/hydra"
 	"log"
 	"sync"
 	"time"
 )
 
-type BasicWaveform[TValue core.Numeric] struct {
-	*sdl2.Head
+type BasicWaveform[THeadDef any, TValue core.Numeric] struct {
+	*hydra.Head[THeadDef]
 
 	// Dimension provides the temporal data that drives this waveform.
 	Dimension *temporal.Dimension[TValue, any]
@@ -36,43 +34,26 @@ type BasicWaveform[TValue core.Numeric] struct {
 	mutex          sync.Mutex
 }
 
-func NewBasicWaveform[TValue core.Numeric](engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *BasicWaveform[TValue] {
-	view := &BasicWaveform[TValue]{}
-	if fullscreen {
-		view.Head = sdl2.CreateFullscreenWindow(engine, title, view, framePotential, false)
-	} else {
-		view.Head = sdl2.CreateWindow(engine, title, size, pos, view, framePotential, false)
-	}
+func NewBasicWaveform[THeadDef any, TValue core.Numeric](head *hydra.Head[THeadDef], timeScale *std.TimeScale[TValue], isSigned bool, target *temporal.Dimension[TValue, any]) *BasicWaveform[THeadDef, TValue] {
+	view := &BasicWaveform[THeadDef, TValue]{}
 	view.TimeScale = timeScale
 	view.Dimension = target
 	view.IsSigned = isSigned
-
-	view.Definition.EventHandler = view.TestInput
+	view.Head = head
+	view.Head.SetImpulsable(view)
 
 	return view
 }
 
-func (view *BasicWaveform[TValue]) Lock() {
+func (view *BasicWaveform[THeadDef, TValue]) Lock() {
 	view.mutex.Lock()
 }
 
-func (view *BasicWaveform[TValue]) Unlock() {
+func (view *BasicWaveform[THeadDef, TValue]) Unlock() {
 	view.mutex.Unlock()
 }
 
-func (view *BasicWaveform[TValue]) TestInput(event sdl.Event) {
-	switch e := event.(type) {
-	case *sdl.KeyboardEvent:
-		if e.Type == sdl.KEYDOWN {
-			switch e.Keysym.Sym {
-			case sdl.K_2:
-				fmt.Println("here")
-			}
-		}
-	}
-}
-
-func (view *BasicWaveform[TValue]) Initialize() {
+func (view *BasicWaveform[THeadDef, TValue]) Initialize() {
 	view.vertexShader = glitter.CompileShader(assets.Get.Shader("waveform/basicWaveform.vert"), gl.VERTEX_SHADER)
 	view.fragmentShader = glitter.CompileShader(assets.Get.Shader("waveform/basicWaveform.frag"), gl.FRAGMENT_SHADER)
 	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
@@ -86,7 +67,7 @@ func (view *BasicWaveform[TValue]) Initialize() {
 	gl.BindBuffer(gl.ARRAY_BUFFER, view.vbo)
 }
 
-func (view *BasicWaveform[TValue]) Impulse(ctx core.Context) {
+func (view *BasicWaveform[THeadDef, TValue]) Impulse(ctx core.Context) {
 	now := time.Now()
 	oldest := now.Add(-view.TimeScale.Duration)
 	view.Dimension.Mutex.Lock()
@@ -135,7 +116,7 @@ func (view *BasicWaveform[TValue]) Impulse(ctx core.Context) {
 	gl.DrawArrays(gl.LINE_STRIP, 0, int32(pointCount))
 }
 
-func (view *BasicWaveform[TValue]) Cleanup() {
+func (view *BasicWaveform[THeadDef, TValue]) Cleanup() {
 	gl.DeleteShader(view.vertexShader)
 	gl.DeleteShader(view.fragmentShader)
 	gl.DeleteProgram(view.program)

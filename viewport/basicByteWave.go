@@ -6,14 +6,14 @@ import (
 	"github.com/ignite-laboratories/core/std"
 	"github.com/ignite-laboratories/glitter"
 	"github.com/ignite-laboratories/glitter/assets"
-	"github.com/ignite-laboratories/hydra/sdl2"
+	"github.com/ignite-laboratories/hydra"
 	"log"
 	"math"
 	"sync"
 )
 
-type BasicByteWave struct {
-	*sdl2.Head
+type BasicByteWave[THeadDef any] struct {
+	*hydra.Head[THeadDef]
 
 	bytes   []byte
 	mutex   sync.Mutex
@@ -28,36 +28,32 @@ type BasicByteWave struct {
 	vertices       []float32
 }
 
-func NewBasicByteWave(engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], bgColor std.RGBA[byte], fgColor std.RGBA[byte], bytes []byte) *BasicByteWave {
-	view := &BasicByteWave{}
+func NewBasicByteWave[THeadDef any](head *hydra.Head[THeadDef], bgColor std.RGBA[byte], fgColor std.RGBA[byte], bytes []byte) *BasicByteWave[THeadDef] {
+	view := &BasicByteWave[THeadDef]{}
 	view.bytes = bytes
 	view.bgColor = bgColor.NormalizeToFloat32()
 	view.fgColor = fgColor.NormalizeToFloat32()
-
-	if fullscreen {
-		view.Head = sdl2.CreateFullscreenWindow(engine, title, view, framePotential, false)
-	} else {
-		view.Head = sdl2.CreateWindow(engine, title, size, pos, view, framePotential, false)
-	}
+	view.Head = head
+	view.Head.SetImpulsable(view)
 
 	return view
 }
 
-func (view *BasicByteWave) SetBytes(bytes []byte) {
+func (view *BasicByteWave[THeadDef]) SetBytes(bytes []byte) {
 	view.mutex.Lock()
 	view.bytes = bytes
 	view.mutex.Unlock()
 }
 
-func (view *BasicByteWave) Lock() {
+func (view *BasicByteWave[THeadDef]) Lock() {
 	view.mutex.Lock()
 }
 
-func (view *BasicByteWave) Unlock() {
+func (view *BasicByteWave[THeadDef]) Unlock() {
 	view.mutex.Unlock()
 }
 
-func (view *BasicByteWave) Initialize() {
+func (view *BasicByteWave[THeadDef]) Initialize() {
 	view.vertexShader = glitter.CompileShader(assets.Get.Shader("waveform/basicWaveform.vert"), gl.VERTEX_SHADER)
 	view.fragmentShader = glitter.CompileShader(assets.Get.Shader("waveform/basicWaveformColor.frag"), gl.FRAGMENT_SHADER)
 	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
@@ -71,7 +67,7 @@ func (view *BasicByteWave) Initialize() {
 	gl.BindBuffer(gl.ARRAY_BUFFER, view.vbo)
 }
 
-func (view *BasicByteWave) Impulse(ctx core.Context) {
+func (view *BasicByteWave[THeadDef]) Impulse(ctx core.Context) {
 	data := make([]byte, len(view.bytes))
 	copy(data, view.bytes)
 
@@ -124,7 +120,7 @@ func (view *BasicByteWave) Impulse(ctx core.Context) {
 
 }
 
-func (view *BasicByteWave) Cleanup() {
+func (view *BasicByteWave[THeadDef]) Cleanup() {
 	gl.DeleteShader(view.vertexShader)
 	gl.DeleteShader(view.fragmentShader)
 	gl.DeleteProgram(view.program)

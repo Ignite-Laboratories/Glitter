@@ -6,14 +6,14 @@ import (
 	"github.com/ignite-laboratories/core/std"
 	"github.com/ignite-laboratories/glitter"
 	"github.com/ignite-laboratories/glitter/assets"
-	"github.com/ignite-laboratories/hydra/sdl2"
+	"github.com/ignite-laboratories/hydra"
 	"log"
 	"math"
 	"sync"
 )
 
-type StackedByteWave struct {
-	*sdl2.Head
+type StackedByteWave[THeadDef any] struct {
+	*hydra.Head[THeadDef]
 
 	data []struct {
 		Color std.RGBA[byte]
@@ -33,30 +33,27 @@ type StackedByteWave struct {
 	vertices       []float32
 }
 
-func NewStackedByteWave(engine *core.Engine, fullscreen bool, framePotential core.Potential, title string, size *std.XY[int], pos *std.XY[int], bgColor std.RGBA[byte]) *StackedByteWave {
-	view := &StackedByteWave{}
+func NewStackedByteWave[THeadDef any](head *hydra.Head[THeadDef], bgColor std.RGBA[byte]) *StackedByteWave[THeadDef] {
+	view := &StackedByteWave[THeadDef]{}
 	view.bgColor = bgColor
 	view.data = make([]struct {
 		Color std.RGBA[byte]
 		Bytes []byte
 	}, 0)
 
-	if fullscreen {
-		view.Head = sdl2.CreateFullscreenWindow(engine, title, view, framePotential, false)
-	} else {
-		view.Head = sdl2.CreateWindow(engine, title, size, pos, view, framePotential, false)
-	}
+	view.Head = head
+	view.Head.SetImpulsable(view)
 
 	return view
 }
 
-func (view *StackedByteWave) SetBGColor(color std.RGBA[byte]) {
+func (view *StackedByteWave[THeadDef]) SetBGColor(color std.RGBA[byte]) {
 	view.Lock()
 	view.bgColor = color
 	view.Unlock()
 }
 
-func (view *StackedByteWave) AddBytes(color std.RGBA[byte], bytes []byte) int {
+func (view *StackedByteWave[THeadDef]) AddBytes(color std.RGBA[byte], bytes []byte) int {
 	view.Lock()
 	view.data = append(view.data, struct {
 		Color std.RGBA[byte]
@@ -67,7 +64,7 @@ func (view *StackedByteWave) AddBytes(color std.RGBA[byte], bytes []byte) int {
 	return i
 }
 
-func (view *StackedByteWave) UpdateBytes(index int, color std.RGBA[byte], bytes []byte) {
+func (view *StackedByteWave[THeadDef]) UpdateBytes(index int, color std.RGBA[byte], bytes []byte) {
 	view.Lock()
 	view.data[index] = struct {
 		Color std.RGBA[byte]
@@ -76,15 +73,15 @@ func (view *StackedByteWave) UpdateBytes(index int, color std.RGBA[byte], bytes 
 	view.Unlock()
 }
 
-func (view *StackedByteWave) Lock() {
+func (view *StackedByteWave[THeadDef]) Lock() {
 	view.mutex.Lock()
 }
 
-func (view *StackedByteWave) Unlock() {
+func (view *StackedByteWave[THeadDef]) Unlock() {
 	view.mutex.Unlock()
 }
 
-func (view *StackedByteWave) Initialize() {
+func (view *StackedByteWave[THeadDef]) Initialize() {
 	view.vertexShader = glitter.CompileShader(assets.Get.Shader("waveform/basicWaveform.vert"), gl.VERTEX_SHADER)
 	view.fragmentShader = glitter.CompileShader(assets.Get.Shader("waveform/basicWaveformColor.frag"), gl.FRAGMENT_SHADER)
 	view.program = glitter.LinkPrograms(view.vertexShader, view.fragmentShader)
@@ -108,7 +105,7 @@ func (view *StackedByteWave) Initialize() {
 	}
 }
 
-func (view *StackedByteWave) Impulse(ctx core.Context) {
+func (view *StackedByteWave[THeadDef]) Impulse(ctx core.Context) {
 	gl.ClearColor(view.bgColor.NormalizeToFloat32().RGBA())
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
@@ -117,7 +114,7 @@ func (view *StackedByteWave) Impulse(ctx core.Context) {
 	}
 }
 
-func (view *StackedByteWave) drawWave(color std.RGBA[byte], data []byte) {
+func (view *StackedByteWave[THeadDef]) drawWave(color std.RGBA[byte], data []byte) {
 	if len(data) == 0 {
 		return
 	}
@@ -153,7 +150,7 @@ func (view *StackedByteWave) drawWave(color std.RGBA[byte], data []byte) {
 	gl.DrawArrays(gl.LINE_STRIP, 0, int32(pointCount))
 }
 
-func (view *StackedByteWave) Cleanup() {
+func (view *StackedByteWave[THeadDef]) Cleanup() {
 	gl.DeleteShader(view.vertexShader)
 	gl.DeleteShader(view.fragmentShader)
 	gl.DeleteProgram(view.program)
